@@ -1,0 +1,42 @@
+﻿@inject IJSRuntime JS
+
+<Tooltip Title="@TooltipText">
+    <a @onclick="ToggleFullscreen" style="cursor:pointer">
+        <Icon Type="@IconType" />
+    </a>
+</Tooltip>
+
+@code {
+    private bool isFullscreen = false;
+
+    private string IconType => isFullscreen ? "fullscreen-exit" : "fullscreen";
+    private string TooltipText => isFullscreen ? "退出全屏" : "进入全屏";
+
+    private async Task ToggleFullscreen()
+    {
+        isFullscreen = await JS.InvokeAsync<bool>("fullscreen.isInFullscreen");
+
+        if (!isFullscreen)
+        {
+            await JS.InvokeVoidAsync("fullscreen.enter");
+            isFullscreen = true;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("fullscreen.exit");
+            isFullscreen = false;
+        }
+
+        // 刷新 UI
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 初始化 JS 全屏监听器（可选）
+            await JS.InvokeVoidAsync("fullscreen.init");
+        }
+    }
+}

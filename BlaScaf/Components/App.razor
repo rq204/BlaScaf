@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="BlaScaf.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script>
+        window.fullscreen = {
+            isFullscreen: false,
+            init: function () {
+                document.addEventListener('fullscreenchange', () => {
+                    this.isFullscreen = !!document.fullscreenElement;
+                });
+            },
+            toggle: function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            },
+            enter: function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                }
+            },
+            exit: function () {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            },
+            isInFullscreen: function () {
+                return !!document.fullscreenElement;
+            }
+        };
+
+        // 初始化监听器
+        //window.fullscreen.init();
+    </script>
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <AntContainer @rendermode="RenderMode.InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>

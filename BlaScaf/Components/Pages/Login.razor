@@ -1,0 +1,139 @@
+﻿@page "/login"
+
+<div class="login-header">
+    <img src="images/logo.png" alt="@BsConfig.AppName" class="logo" />
+    <h1 class="system-title">@BsConfig.AppName</h1>
+</div>
+
+<div class="login-body">
+    <div class="login-left">
+        <h2 class="slogan">好用，易用，操作简单</h2>
+        <img src="images/login.png" width="260" height="180" />
+    </div>
+
+    <div class="login-right">
+        <Card class="login-card" Title="帐号登录" Bordered="false">
+            <div class="form-item">
+                <Input @bind-Value="account" PrefixIcon="user" Placeholder="账号" class="rounded-input" />
+            </div>
+            <div class="form-item">
+                <InputPassword @bind-Value="password" PrefixIcon="lock" Placeholder="密码" class="rounded-input" />
+            </div>
+            <Checkbox @bind-Value="rememberMe">记住用户名</Checkbox>
+            <div style="margin-top: 16px;">
+                <Button Type="ButtonType.Primary" Block class="rounded-button">登录</Button>
+            </div>
+        </Card>
+    </div>
+</div>
+
+<footer class="login-footer">
+    <p>
+        ©2020-2025 &nbsp;&nbsp; Powered By
+        <a href="#" target="_blank">BlaScaf信息管理公司</a>
+    </p>
+</footer>
+
+@code {
+    private string account;
+    private string password;
+    private bool rememberMe = true;
+}
+
+<style>
+    /* 全局背景 */
+    body, html {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(to bottom right, #a3d8f4, #e3f3ff);
+        height: 100vh;
+    }
+
+    .login-header {
+        display: flex;
+        align-items: center;
+        padding: 24px 48px;
+        background-color: white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+        .login-header .logo {
+            height: 50px;
+            margin-right: 16px; /* 图片和标题之间留点间距 */
+            display: block;
+            vertical-align: middle;
+        }
+
+
+    .system-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #333;
+        line-height: 50px;
+        vertical-align: middle;
+    }
+
+    /* 主体区域 */
+    .login-body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 48px 48px 80px;
+        gap: 120px; /* 增加间距 */
+    }
+
+    /* 左侧图片与口号 */
+    .login-left {
+        text-align: center;
+    }
+
+        .login-left .slogan {
+            font-size: 20px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+        }
+
+    .login-right {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 登录卡片 */
+    .login-card {
+        width: 340px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* 卡片内表单样式 */
+    .form-item {
+        margin-bottom: 16px;
+    }
+
+    .rounded-input .ant-input,
+    .rounded-input .ant-input-password {
+        border-radius: 8px !important;
+    }
+
+    .rounded-button .ant-btn {
+        border-radius: 8px !important;
+    }
+
+    /* 底部 Footer */
+    .login-footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+        background-color: #f7f7f7; /* 改为浅灰色背景 */
+        padding: 16px 0;
+        border-top: 1px solid #ddd;
+    }
+
+</style>

@@ -1,0 +1,104 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<Layout Style="min-height: 100vh">
+    <Sider Collapsible="true" @bind-Collapsed="collapsed" Width="200" Theme="SiderTheme.Light">
+        <div style="height: 64px; display: flex; align-items: center; justify-content: center;">
+            <img src="/images/logo.png" style="height: 50px; width: 180px; object-fit: contain;" />
+        </div>
+        <Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
+            <MenuItem Key="home" Icon="home">首页</MenuItem>
+            <MenuItem Key="rules" Icon="file-text">店名规格</MenuItem>
+            <MenuItem Key="codes" Icon="barcode">商超密码</MenuItem>
+            <MenuItem Key="logs" Icon="calendar">操作日志</MenuItem>
+            <MenuItem Key="abnormal" Icon="alert">数据异常</MenuItem>
+            <MenuItem Key="stats" Icon="bar-chart">缺数统计</MenuItem>
+        </Menu>
+    </Sider>
+
+    <Layout>
+        <Header style="background: #fff; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; height: 64px;">
+            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle">
+                <Button Shape="ButtonShape.Circle" Icon="menu" OnClick="ToggleSidebar" />
+                <span style="font-size: 18px;">大润发</span>
+            </Space>
+            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle">
+                <SpaceItem>
+                    <Icon Type="@IconType.Outline.Home" style="font-size: 18px;" />
+                </SpaceItem>
+                <SpaceItem>
+                    <Badge Count="3">
+                        <Icon Type="bell" style="font-size: 18px;" />
+                    </Badge>
+                </SpaceItem>
+                <SpaceItem>
+                    <BlaScaf.Components.Shared.FullScreenToggle />
+                </SpaceItem>
+                <SpaceItem>
+                    <Dropdown>
+                        <Overlay>
+                            <Menu>
+                                <MenuItem @key="0">
+                                    <a target="_blank" rel="noopener noreferrer" href="http://www.alipay.com/">
+                                        <Icon Type="@IconType.Outline.Setting" />修改密码
+                                    </a>
+                                </MenuItem>
+                                <MenuDivider />
+                                <MenuItem @key="3">
+                                    <Icon Type="@IconType.Outline.Logout" />退出登录
+                                </MenuItem>
+                            </Menu>
+                        </Overlay>
+                        <ChildContent>
+                            <a class="ant-dropdown-link" style="display: flex; align-items: center; height: 32px;">
+                                <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> Admin
+                            </a>
+                        </ChildContent>
+                    </Dropdown>
+                </SpaceItem>
+            </Space>
+
+        </Header>
+
+        <Content style="margin: 10px; background: #fff; padding: 0px; min-height: 280px">
+            @Body
+        </Content>
+    </Layout>
+</Layout>
+
+@code {
+    private bool collapsed = false;
+    private string current = "home";
+
+    private bool isFullscreen = false;
+
+    private string fullType => isFullscreen ? "fullscreen-exit" : "fullscreen";
+
+    private async Task ToggleFullscreen()
+    {
+        isFullscreen = await JS.InvokeAsync<bool>("fullscreen.isInFullscreen");
+
+        if (!isFullscreen)
+        {
+            await JS.InvokeVoidAsync("fullscreen.enter");
+            isFullscreen = true;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("fullscreen.exit");
+            isFullscreen = false;
+        }
+    }
+
+    private void ToggleSidebar()
+    {
+        collapsed = !collapsed;
+    }
+
+    private void OnMenuSelect(MenuItem menuItem)
+    {
+        current = menuItem.Key;
+        //NavigationManager.NavigateTo($"/{menuItem.Key}");
+    }
+}
+
