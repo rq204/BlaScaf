@@ -2,6 +2,13 @@
 @inject IJSRuntime JS
 @inject NavigationManager nav
 
+<style>
+    .my-space .ant-space-item {
+        display: flex;
+        align-items: center;
+    }
+
+</style>
 <Layout Style="min-height: 100vh">
     <Sider Collapsible="true" @bind-Collapsed="collapsed" Width="200" Theme="SiderTheme.Light">
         <div style="height: 54px; display: flex; align-items: center; justify-content: center;">
@@ -19,13 +26,27 @@
 
     <Layout>
         <Header style="background: #fff; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; height: 50px;">
-            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle" >
-                <Icon Class="action" Type="@(collapsed ? "menu-unfold" : "menu-fold")" OnClick="ToggleSidebar" />
-                <Text>  </Text>
-                <Text>@PageTitle</Text>
+            <Space Align="SpaceAlign.Center" Size="SpaceSize.Small">
+                <SpaceItem>
+                    <Icon Class="action" Type="@(collapsed ? "menu-unfold" : "menu-fold")" OnClick="ToggleSidebar" />
+                </SpaceItem>
+                <SpaceItem>
+                    <Text>@PageTitle</Text>
+                </SpaceItem>
             </Space>
-            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle" Style="height: 100%; display: flex; align-items: center;">
-                <HeaderActions />
+            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle" Style="height: 100%; display: flex; align-items: center;" Class="my-space">
+                @foreach (var fragment in BsConfig.HeaderFragments)
+                {
+                    <SpaceItem>
+                        @fragment
+                    </SpaceItem>
+                }
+                <SpaceItem>
+                    <BlaScaf.Components.Shared.FullScreenToggle />
+                </SpaceItem>
+                <SpaceItem>
+                    <BlaScaf.Components.Shared.UserProfileMenu />
+                </SpaceItem>
             </Space>
         </Header>
 
@@ -37,17 +58,10 @@
 
 @code {
     private bool collapsed = false;
-    private string current = "home";
 
     private void ToggleSidebar()
     {
         collapsed = !collapsed;
-    }
-
-    private void OnMenuSelect(MenuItem menuItem)
-    {
-        current = menuItem.Key;
-        //NavigationManager.NavigateTo($"/{menuItem.Key}");
     }
 
     private string PageTitle = "首页";
@@ -64,11 +78,10 @@
         StateHasChanged();
     }
 
-    private void  UpdatePageTitle(string uri)
+    private void UpdatePageTitle(string uri)
     {
         var relativePath = nav.ToBaseRelativePath(uri).TrimEnd('/');
         PageTitle = BsConfig.MenuItems.Find(f => f.RouterLink.Trim('/') == relativePath)?.Title;
-        JS.InvokeVoidAsync("SetTitle", PageTitle);
     }
 
     public void Dispose()

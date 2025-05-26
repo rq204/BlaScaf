@@ -1,9 +1,10 @@
 ﻿using AntDesign;
 using BlaScaf.Components;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using BlaScaf.Components.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace BlaScaf
 {
@@ -13,59 +14,38 @@ namespace BlaScaf
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+            BsConfig.AddBsService(builder);
+            DemoSys.LoadConfig();
 
-            builder.Services.AddAntDesign();
-
-            //添加 Cookie 身份验证
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie();
-
-            builder.Services.AddHttpContextAccessor();
-            builder.Services.AddScoped<HttpContextAccessor>();
-            builder.Services.AddHttpClient();
-            builder.Services.AddScoped<HttpClient>();
-
-
-            //添加用户信息
-            builder.Services.AddScoped<UserService>();
-
-            builder.Services.AddControllers();
-
+            // 添加 CORS 策略（示例允许所有）
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: MyAllowSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
-                                  });
+                options.AddPolicy(name: MyAllowSpecificOrigins, policy =>
+                {
+                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                });
             });
-
-            builder.Services.AddScoped<AuthenticationStateProvider, BsAuthProvider>();
-
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = BsAuthProvider.CreateTokenValidationParameters();
-});
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // 错误页面配置
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
             }
 
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "admin" }, RouterLink = "/", Title = "首页" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "demo", Icon = "user", Roles = new List<string>() { "admin" }, RouterLink = "/demo", Title = "演示页面" });
-
             app.UseStaticFiles();
+
+            // 中间件顺序：CORS → 认证 → 授权
+            app.UseCors(MyAllowSpecificOrigins);
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseAntiforgery();
 
+            // 映射 Razor 组件入口
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
