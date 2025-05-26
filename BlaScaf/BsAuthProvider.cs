@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Principal;
 
@@ -15,11 +16,14 @@ namespace BlaScaf
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IJSRuntime _jsRuntime;
+        private UserService userService;
 
-        public BsAuthProvider(IHttpContextAccessor httpContextAccessor, IJSRuntime jsRuntime)
+
+        public BsAuthProvider(IHttpContextAccessor httpContextAccessor, IJSRuntime jsRuntime, UserService userService)
         {
-            _httpContextAccessor = httpContextAccessor;
-            _jsRuntime = jsRuntime;
+            this._httpContextAccessor = httpContextAccessor;
+            this._jsRuntime = jsRuntime;
+            this.userService = userService;
         }
 
         /// <summary>
@@ -29,26 +33,60 @@ namespace BlaScaf
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var context = _httpContextAccessor.HttpContext;
-            if (context == null || !context.Request.Cookies.TryGetValue("JwtToken", out var token))
+            if (context == null || !context.Request.Cookies.TryGetValue("blascaf", out var bstoken))
             {
                 return Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
             }
 
-            var result = new BsUser(); //AccountManager.GetAccount(token);
-            if (result == null || string.IsNullOrEmpty(result.UserName))
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var validationParameters = CreateTokenValidationParameters();
+            SecurityToken securityToken; // 接受解码后的token对象
+            var princ = tokenHandler.ValidateToken(bstoken, validationParameters, out securityToken);
+            ///如果错误或过期
+            if (princ == null || securityToken == null || securityToken.ValidTo > DateTime.Now)
             {
                 return Task.FromResult(new AuthenticationState(new ClaimsPrincipal()));
             }
-      
-            var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, result.UserName),
-        new Claim(ClaimTypes.Role, result.Role),
-        new Claim("UserId", result.UserId.ToString())
-    };
 
-            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "apiauth"));
-            return Task.FromResult(new AuthenticationState(user));
+            if (userService == null || string.IsNullOrEmpty(userService.Username))
+            {
+                userService = new UserService();
+                userService.Username = princ.Claims.First(x => x.Type == "Username").Value;
+                userService.UserId = int.Parse(princ.Claims.First(x => x.Type == "UserId").Value);
+                userService.Token = princ.Claims.First(x => x.Type == "Token").Value;
+                userService.Roles = princ.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            }
+
+            ///5分钟一更新jwt
+            DateTime upcookieTime = securityToken.ValidTo.AddMinutes(5 - BsConfig.CookieTimeOutMinutes);
+            if (upcookieTime > DateTime.Now)
+            {
+                    var newToken = BsAuthProvider.CreateToken(this.userService);
+                context.Response.Cookies.Append("blascaf", newToken, new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+                    HttpOnly = true,
+                    Secure = true
+                });
+            }
+            return Task.FromResult(new AuthenticationState(princ));
+        }
+
+        public static TokenValidationParameters CreateTokenValidationParameters()
+        {
+            var symmetricKey = System.Text.Encoding.UTF8.GetBytes(BsConfig.JwtKey32); // 生成编码对应的字节数组
+            var validationParameters = new TokenValidationParameters() // 生成验证token的参数
+            {
+                RequireExpirationTime = true, // token是否包含有效期
+                ValidateLifetime = true,//验证过期时间
+                ValidateIssuer = true, // 验证秘钥发行人，如果要验证在这里指定发行人字符串即可
+                ValidateAudience = true, // 验证秘钥的接受人，如果要验证在这里提供接收人字符串即可
+                ValidAudience = validAudience,//Audience
+                ValidIssuer = "BlaScaf",//Issuer，这两项和签发jwt的设置一致
+                IssuerSigningKey = new SymmetricSecurityKey(symmetricKey) // 生成token时的安全秘钥
+            };
+            return validationParameters;
         }
 
         /// <summary>
@@ -56,24 +94,27 @@ namespace BlaScaf
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        public async Task MarkUserAsAuthenticated(BsUser user)
+        public async Task MarkUserAsAuthenticated(UserService user)
         {
             var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim("UserId", user.UserId.ToString())
+            new Claim("Username", user.Username),
+            new Claim("UserId", user.UserId.ToString()),
+             new Claim("Token", user.Token)
         };
 
-            foreach (var role in user.Role.Split(','))
+            foreach (var role in user.Roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "apiauth"));
+            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(claims));
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(authenticatedUser)));
 
+            string jwtoken = CreateToken(user);
+
             // 可选（推荐使用服务端设置 Cookie）
-            await _jsRuntime.InvokeVoidAsync("SetCookie", "JwtToken", user.Token);
+            await _jsRuntime.InvokeVoidAsync("SetCookie", "blascaf", jwtoken);
         }
 
         /// <summary>
@@ -83,57 +124,36 @@ namespace BlaScaf
         public async Task MarkUserAsLoggedOut()
         {
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new ClaimsPrincipal())));
-            await _jsRuntime.InvokeVoidAsync("SetCookie", "JwtToken", "");
+            await _jsRuntime.InvokeVoidAsync("SetCookie", "blascaf", "");
         }
 
-        public static ClaimsPrincipal GetPrincipal(string token)
-        { // 此方法用解码字符串token，并返回秘钥的信息对象
-            try
-            {
-                var tokenHandler = new JwtSecurityTokenHandler(); // 创建一个JwtSecurityTokenHandler类，用来后续操作
-                var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken; // 将字符串token解码成token对象
-                if (jwtToken == null)
-                    return null;
-                var symmetricKey = System.Text.Encoding.UTF8.GetBytes(BsConfig.IssuerSigningKey); // 生成编码对应的字节数组
-                var validationParameters = new TokenValidationParameters() // 生成验证token的参数
-                {
-                    RequireExpirationTime = true, // token是否包含有效期
-                    ValidateIssuer = true, // 验证秘钥发行人，如果要验证在这里指定发行人字符串即可
-                    ValidateAudience = true, // 验证秘钥的接受人，如果要验证在这里提供接收人字符串即可
-                    ValidAudience = BsConfig.ValidAudience,//Audience
-                    ValidIssuer = BsConfig.ValidIssuer,//Issuer，这两项和签发jwt的设置一致
-                    IssuerSigningKey = new SymmetricSecurityKey(symmetricKey) // 生成token时的安全秘钥
-                };
-                SecurityToken securityToken; // 接受解码后的token对象
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
-                return principal; // 返回秘钥的主体对象，包含秘钥的所有相关信息
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        private static string validAudience = Assembly.GetExecutingAssembly().FullName;
 
         /// <summary>
         /// 生成JwtToken
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        private static string CreateToken(BsUser user)
+        internal static string CreateToken(UserService user)
         {
             //此处加入账号密码验证代码
-            var claims = new Claim[]
+            var claims = new List<Claim>()
             {
-            new Claim(ClaimTypes.Name,user.UserName),
-            new Claim(ClaimTypes.Role,user.Role),
+            new Claim("Username",user.Username),
+              new Claim("UserId",user.UserId.ToString()),
             new Claim("Token",user.Token),
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(BsConfig.IssuerSigningKey));
-            var expires = DateTime.Now.AddDays(30);
+            foreach (var role in user.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(BsConfig.JwtKey32));
+            var expires = DateTime.Now.AddMinutes(BsConfig.CookieTimeOutMinutes);
             var token = new JwtSecurityToken(
-                issuer: BsConfig.ValidIssuer,
-                audience: BsConfig.ValidAudience,
+                issuer: "BlaScaf",
+                audience: validAudience,
                 claims: claims,
                 notBefore: DateTime.Now,
                 expires: expires,
@@ -142,5 +162,4 @@ namespace BlaScaf
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
-
 }

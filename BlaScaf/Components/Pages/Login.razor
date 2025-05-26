@@ -1,139 +1,69 @@
 ﻿@page "/login"
-
-<div class="login-header">
-    <img src="images/logo.png" alt="@BsConfig.AppName" class="logo" />
-    <h1 class="system-title">@BsConfig.AppName</h1>
-</div>
-
-<div class="login-body">
-    <div class="login-left">
-        <h2 class="slogan">好用，易用，操作简单</h2>
-        <img src="images/login.png" width="260" height="180" />
-    </div>
-
-    <div class="login-right">
-        <Card class="login-card" Title="帐号登录" Bordered="false">
-            <div class="form-item">
-                <Input @bind-Value="account" PrefixIcon="user" Placeholder="账号" class="rounded-input" />
-            </div>
-            <div class="form-item">
-                <InputPassword @bind-Value="password" PrefixIcon="lock" Placeholder="密码" class="rounded-input" />
-            </div>
-            <Checkbox @bind-Value="rememberMe">记住用户名</Checkbox>
-            <div style="margin-top: 16px;">
-                <Button Type="ButtonType.Primary" Block class="rounded-button">登录</Button>
-            </div>
-        </Card>
-    </div>
-</div>
-
-<footer class="login-footer">
-    <p>
-        ©2020-2025 &nbsp;&nbsp; Powered By
-        <a href="#" target="_blank">BlaScaf信息管理公司</a>
-    </p>
-</footer>
-
-@code {
-    private string account;
-    private string password;
-    private bool rememberMe = true;
-}
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
+@attribute [AllowAnonymous]
 
 <style>
-    /* 全局背景 */
-    body, html {
-        margin: 0;
-        padding: 0;
-        font-family: "Segoe UI", Roboto, sans-serif;
-        background: linear-gradient(to bottom right, #a3d8f4, #e3f3ff);
-        height: 100vh;
+    .login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5;
     }
 
-    .login-header {
-        display: flex;
-        align-items: center;
-        padding: 24px 48px;
-        background-color: white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-
-        .login-header .logo {
-            height: 50px;
-            margin-right: 16px; /* 图片和标题之间留点间距 */
-            display: block;
-            vertical-align: middle;
-        }
-
-
-    .system-title {
-        font-size: 22px;
-        font-weight: 600;
-        color: #333;
-        line-height: 50px;
-        vertical-align: middle;
-    }
-
-    /* 主体区域 */
-    .login-body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 48px 48px 80px;
-        gap: 120px; /* 增加间距 */
-    }
-
-    /* 左侧图片与口号 */
-    .login-left {
-        text-align: center;
-    }
-
-        .login-left .slogan {
-            font-size: 20px;
-            font-weight: 500;
-            color: #1a1a1a;
-            margin-bottom: 24px;
-        }
-
-    .login-right {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* 登录卡片 */
     .login-card {
-        width: 340px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 420px;
+    padding: 40px 32px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
-    /* 卡片内表单样式 */
-    .form-item {
-        margin-bottom: 16px;
+    .login-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 28px;
+    color: #333;
     }
 
-    .rounded-input .ant-input,
-    .rounded-input .ant-input-password {
-        border-radius: 8px !important;
+    .captcha-img {
+    height: 36px;
+    width: 100%;
+    border-radius: 4px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid #ddd;
     }
 
-    .rounded-button .ant-btn {
-        border-radius: 8px !important;
+    .ant-btn-primary {
+    width: 100%;
     }
-
-    /* 底部 Footer */
-    .login-footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-        font-size: 14px;
-        color: #666;
-        background-color: #f7f7f7; /* 改为浅灰色背景 */
-        padding: 16px 0;
-        border-top: 1px solid #ddd;
-    }
-
 </style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-title">@BsConfig.AppName</div>
+        <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin" >
+            <Input @bind-Value="loginModel.Username" Placeholder="用户名" PrefixIcon="user" Required="true" />
+            <div style="height: 16px;"></div>
+            <Input @bind-Value="loginModel.Password" Placeholder="密码" PrefixIcon="lock" Type=" InputType.Password" Required="true" />
+            <div style="height: 16px;"></div>
+            @* 
+            <AntRow Gutter="8">
+                <AntCol Span="16">
+                    <AntInput @bind-Value="loginModel.Captcha" Placeholder="验证码" Required="true" />
+                </AntCol>
+                <AntCol Span="8">
+                    <img src="@captchaImage" alt="验证码" class="captcha-img" @onclick="ReloadCaptcha" />
+                </AntCol>
+            </AntRow> *@
+
+            <div style="height: 24px;"></div>
+            <Button Type="ButtonType.Primary" HtmlType="submit" Loading="@isLoading">登录</Button>
+        </EditForm>
+    </div>
+</div>
+

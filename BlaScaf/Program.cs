@@ -1,5 +1,6 @@
-using AntDesign;
+锘縰sing AntDesign;
 using BlaScaf.Components;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -18,10 +19,18 @@ namespace BlaScaf
 
             builder.Services.AddAntDesign();
 
+            //娣诲姞 Cookie 韬唤楠岃瘉
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie();
+
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<HttpContextAccessor>();
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<HttpClient>();
+
+
+            //娣诲姞鐢ㄦ埛淇℃伅
+            builder.Services.AddScoped<UserService>();
 
             builder.Services.AddControllers();
 
@@ -40,16 +49,7 @@ namespace BlaScaf
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,//是否验证Issuer
-        ValidateAudience = true,//是否验证Audience
-        ValidateLifetime = true,//是否验证失效时间
-        ValidateIssuerSigningKey = true,//是否验证SecurityKey
-        ValidAudience = BsConfig.ValidAudience,//Audience
-        ValidIssuer = BsConfig.ValidIssuer,//Issuer，这两项和签发jwt的设置一致
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(BsConfig.IssuerSigningKey))//拿到SecurityKey
-    };
+    options.TokenValidationParameters = BsAuthProvider.CreateTokenValidationParameters();
 });
 
             var app = builder.Build();
@@ -59,6 +59,9 @@ namespace BlaScaf
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "admin" }, RouterLink = "/", Title = "棣栭〉" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "demo", Icon = "user", Roles = new List<string>() { "admin" }, RouterLink = "/demo", Title = "婕旂ず椤甸潰" });
 
             app.UseStaticFiles();
             app.UseAntiforgery();

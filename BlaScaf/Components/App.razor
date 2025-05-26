@@ -36,6 +36,17 @@
             }
         };
 
+        function SetCookie(cname, cvalue) {
+            var d = new Date();
+            d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
+            var expires = "expires=" + d.toGMTString();
+            document.cookie = cname + "=" + cvalue + "; " + expires + ";path=/";
+        }
+
+        function SetTitle(title) {
+            document.title = title;
+        }
+
         // 初始化监听器
         //window.fullscreen.init();
     </script>

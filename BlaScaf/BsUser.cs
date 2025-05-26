@@ -19,7 +19,7 @@ namespace BlaScaf
         /// 用户名
         /// </summary>
         [FreeSql.DataAnnotations.Column(StringLength = 30)]
-        public string UserName { get; set; }
+        public string Username { get; set; }
 
         /// <summary>
         /// 密码md5的

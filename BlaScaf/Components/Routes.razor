@@ -1,17 +1,6 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly">
+﻿<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <CascadingAuthenticationState>
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(BlaScaf.Components.Layout.MainLayout)">
-                <NotAuthorized>
-                    <BlaScaf.Components.Pages.Login />
-                </NotAuthorized>
-            </AuthorizeRouteView>
-        </CascadingAuthenticationState>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(BlaScaf.Components.Layout.MainLayout)">
-            <p>抱歉，找不到该页面。</p>
-        </LayoutView>
-    </NotFound>
 </Router>
