@@ -1,4 +1,5 @@
 ﻿@inject NavigationManager nav
+@inject UserService UserService
 
 <Dropdown>
     <Overlay>
@@ -14,7 +15,15 @@
     </Overlay>
     <ChildContent>
         <a class="ant-dropdown-link" style="display: flex; align-items: center; height: 32px;">
-            <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> Admin
+            <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> @UserService.Username
         </a>
     </ChildContent>
 </Dropdown>
+
+@code{
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UserService.LoadUserInfoAsync();
+    }
+}

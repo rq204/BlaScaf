@@ -7,7 +7,6 @@
         display: flex;
         align-items: center;
     }
-
 </style>
 <Layout Style="min-height: 100vh">
     <Sider Collapsible="true" @bind-Collapsed="collapsed" Width="200" Theme="SiderTheme.Light">
@@ -55,9 +54,38 @@
         </Content>
     </Layout>
 </Layout>
-
 @code {
     private bool collapsed = false;
+
+    @inject AuthenticationStateProvider AuthenticationStateProvider
+    [Inject] private NavigationManager Navigation { get; set; }
+  
+
+    // private bool _checkedAuth = false;
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender && !_checkedAuth)
+    //     {
+    //         _checkedAuth = true;
+
+    //         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //         var user = authState.User;
+
+    //         // 当前路径是否为 /login
+    //         var currentUri = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/');
+    //         bool isOnLoginPage = string.Equals(currentUri, "login", StringComparison.OrdinalIgnoreCase);
+
+    //         if (!user.Identity?.IsAuthenticated ?? true)
+    //         {
+    //             if (!isOnLoginPage)
+    //             {
+    //                 Navigation.NavigateTo("/login", true);
+    //             }
+    //         }
+    //     }
+    // }
+
 
     private void ToggleSidebar()
     {

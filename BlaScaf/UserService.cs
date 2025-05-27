@@ -1,16 +1,44 @@
-﻿namespace BlaScaf
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
+
+namespace BlaScaf
 {
     /// <summary>
     /// 当前登录用户信息
     /// </summary>
     public class UserService
     {
-        public int UserId { get; set; }
+        private readonly AuthenticationStateProvider _authProvider;
 
-        public string Username { get; set; }
+        public int UserId { get; private set; }
+        public string Username { get; private set; }
+        public string Role { get; private set; }
 
-        public List<string> Roles { get; set; } = new();
+        public UserService(AuthenticationStateProvider authProvider)
+        {
+            _authProvider = authProvider;
+        }
 
-        public string Token { get; set; } = Guid.NewGuid().ToString();
+        public async Task LoadUserInfoAsync()
+        {
+            var authState = await _authProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                Username = user.Identity.Name;
+                Role = user.FindFirst(ClaimTypes.Role)?.Value;
+                var userIdStr = user.FindFirst("UserId")?.Value;
+
+                UserId = int.TryParse(userIdStr, out var uid) ? uid : 0;
+            }
+            else
+            {
+                // 未登录用户清空属性
+                UserId = 0;
+                Username = null;
+                Role = null;
+            }
+        }
     }
 }

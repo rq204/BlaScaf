@@ -5,32 +5,26 @@ namespace BlaScaf
     /// <summary>
     /// 用户信息
     /// </summary>
-    [FreeSql.DataAnnotations.Table(Name = "bs_user")]
-    [FreeSql.DataAnnotations.Index("bs_username", "UserName", IsUnique = true)]
     public class BsUser
     {
         /// <summary>
         /// 用户id
         /// </summary>
-        [FreeSql.DataAnnotations.Column(IsPrimary = true, IsIdentity = true)]
         public int UserId { get; set; }
 
         /// <summary>
         /// 用户名
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 30)]
         public string Username { get; set; }
 
         /// <summary>
         /// 密码md5的
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 32)]
         public string Password { get; set; }
 
         /// <summary>
         /// 添加时间
         /// </summary>
-        [FreeSql.DataAnnotations.Column(ServerTime = DateTimeKind.Local)]
         public DateTime AddTime { get; set; } = DateTime.Now;
 
         /// <summary>
@@ -57,7 +51,6 @@ namespace BlaScaf
         /// <summary>
         /// 最后密码修改时间
         /// </summary>
-        [FreeSql.DataAnnotations.Column(ServerTime = DateTimeKind.Local)]
         public DateTime LastChangePwd { get; set; }
 
         /// <summary>
@@ -68,7 +61,6 @@ namespace BlaScaf
         /// <summary>
         /// 最后修改时间
         /// </summary>
-        [FreeSql.DataAnnotations.Column(ServerTime = DateTimeKind.Local)]
         public DateTime LastLogin { get; set; }
 
         /// <summary>
@@ -84,8 +76,12 @@ namespace BlaScaf
         /// <summary>
         /// 过期时间
         /// </summary>
-        [FreeSql.DataAnnotations.Column(ServerTime = DateTimeKind.Local)]
         public DateTime EndTime { get; set; }
 
+
+        internal string Validate()
+        {
+            return null;
+        }
     }
 }

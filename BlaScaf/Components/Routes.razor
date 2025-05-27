@@ -1,6 +1,23 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-</Router>
+﻿@inject NavigationManager NavigationManager
+<CascadingAuthenticationState>
+    <Router AppAssembly="@this.GetType().Assembly">
+        <Found Context="routeData">
+            @if (routeData.PageType == typeof(BlaScaf.Components.Pages.Login))
+            {
+                <RouteView RouteData="@routeData" />
+            }
+            else
+            {
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+                    <NotAuthorized>
+                        @if (!NavigationManager.Uri.Contains("login"))
+                        {
+                            NavigationManager.NavigateTo("/login", forceLoad: true);
+                        }
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+            }
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
