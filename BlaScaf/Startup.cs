@@ -26,7 +26,7 @@ namespace BlaScaf
 
             BsConfig.HeaderFragments.Add(fragment);
 
-            //添加示例程序
+            //添加示例帐号
             BsConfig.Users.Add(new BsUser() { UserId = 1, Username = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-30), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
 
             var builder = WebApplication.CreateBuilder(args);

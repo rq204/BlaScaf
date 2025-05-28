@@ -20,12 +20,12 @@ namespace BlaScaf
             {
                 if (BsSecurity.UserHashKey.ContainsKey(dto.Username))
                 {
-                    string key=BsSecurity.UserHashKey[dto.Username];
+                    string key = BsSecurity.UserHashKey[dto.Username];
                     BsSecurity.UserHashKey.Remove(dto.Username);
 
                     string md5pw = null;
                     try
-                    { 
+                    {
                         md5pw = Utility.DESDecrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
                     }
                     catch
@@ -70,5 +70,18 @@ namespace BlaScaf
                 return Unauthorized("用户名或密码错误");
             }
         }
+
+        /// <summary>
+        /// 退出登录
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync();
+            return Ok();
+        }
+
+
     }
 }

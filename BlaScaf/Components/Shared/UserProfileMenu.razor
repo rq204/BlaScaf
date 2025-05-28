@@ -1,14 +1,11 @@
-﻿@inject NavigationManager nav
-@inject UserService UserService
-
-<Dropdown>
+﻿<Dropdown>
     <Overlay>
         <Menu>
-            <MenuItem @key="0">
+            <MenuItem @key="0" OnClick="@OnChangePassword">
                 <Icon Type="@IconType.Outline.Setting" />修改密码
             </MenuItem>
             <MenuDivider />
-            <MenuItem @key="2">
+            <MenuItem @key="2" OnClick="@OnLogout">
                 <Icon Type="@IconType.Outline.Logout" />退出登录
             </MenuItem>
         </Menu>
@@ -20,10 +17,26 @@
     </ChildContent>
 </Dropdown>
 
-@code{
+<script>
+    window.bsLogout = async function (dotNetObj) {
+        let success = false;
+        let message = "";
 
-    protected override async Task OnInitializedAsync()
-    {
-        await UserService.LoadUserInfoAsync();
+        try {
+            let response = await fetch('/bsapi/logout', {
+                method: 'POST',
+                credentials: 'include' // 关键：要能收到 Set-Cookie
+            });
+
+            if (response.ok) {
+                success = true;
+            }
+        } catch (err) {
+            message = "网络错误：" + err.message;
+        }
+
+        if (dotNetObj && dotNetObj.invokeMethodAsync) {
+            await dotNetObj.invokeMethodAsync("OnLogoutResult", success, message);
+        }
     }
-}
+</script>

@@ -1,4 +1,4 @@
-﻿@inject IJSRuntime JS
+﻿@inject IJSRuntime JSRuntime
 
 <Tooltip Title="@TooltipText">
     <a @onclick="ToggleFullscreen" style="cursor:pointer">
@@ -14,16 +14,16 @@
 
     private async Task ToggleFullscreen()
     {
-        isFullscreen = await JS.InvokeAsync<bool>("fullscreen.isInFullscreen");
+        isFullscreen = await JSRuntime.InvokeAsync<bool>("fullscreen.isInFullscreen");
 
         if (!isFullscreen)
         {
-            await JS.InvokeVoidAsync("fullscreen.enter");
+            await JSRuntime.InvokeVoidAsync("fullscreen.enter");
             isFullscreen = true;
         }
         else
         {
-            await JS.InvokeVoidAsync("fullscreen.exit");
+            await JSRuntime.InvokeVoidAsync("fullscreen.exit");
             isFullscreen = false;
         }
 
@@ -36,7 +36,7 @@
         if (firstRender)
         {
             // 初始化 JS 全屏监听器（可选）
-            await JS.InvokeVoidAsync("fullscreen.init");
+            await JSRuntime.InvokeVoidAsync("fullscreen.init");
         }
     }
 }

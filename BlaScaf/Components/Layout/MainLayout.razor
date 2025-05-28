@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
-@inject IJSRuntime JS
-@inject NavigationManager nav
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 
 <style>
     .my-space .ant-space-item {
@@ -56,37 +56,7 @@
 </Layout>
 @code {
     private bool collapsed = false;
-
-    @inject AuthenticationStateProvider AuthenticationStateProvider
-    [Inject] private NavigationManager Navigation { get; set; }
   
-
-    // private bool _checkedAuth = false;
-
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender && !_checkedAuth)
-    //     {
-    //         _checkedAuth = true;
-
-    //         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //         var user = authState.User;
-
-    //         // 当前路径是否为 /login
-    //         var currentUri = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/');
-    //         bool isOnLoginPage = string.Equals(currentUri, "login", StringComparison.OrdinalIgnoreCase);
-
-    //         if (!user.Identity?.IsAuthenticated ?? true)
-    //         {
-    //             if (!isOnLoginPage)
-    //             {
-    //                 Navigation.NavigateTo("/login", true);
-    //             }
-    //         }
-    //     }
-    // }
-
-
     private void ToggleSidebar()
     {
         collapsed = !collapsed;
@@ -96,8 +66,8 @@
 
     protected override void OnInitialized()
     {
-        nav.LocationChanged += OnLocationChanged;
-        UpdatePageTitle(nav.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+        UpdatePageTitle(NavigationManager.Uri);
     }
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs e)
@@ -108,13 +78,13 @@
 
     private void UpdatePageTitle(string uri)
     {
-        var relativePath = nav.ToBaseRelativePath(uri).TrimEnd('/');
+        var relativePath = NavigationManager.ToBaseRelativePath(uri).TrimEnd('/');
         PageTitle = BsConfig.MenuItems.Find(f => f.RouterLink.Trim('/') == relativePath)?.Title;
     }
 
     public void Dispose()
     {
-        nav.LocationChanged -= OnLocationChanged;
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
 }

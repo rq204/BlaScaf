@@ -14,8 +14,11 @@ namespace BlaScaf.Components.Pages
     {
         private BsUser loginModel = new();
         private bool isLoading = false;
-        [Inject] public MessageService msgSrv { get; set; }
-        [Inject] public IJSRuntime JS { get; set; }
+
+        [Inject] public NavigationManager NavigationManager { get; set; }
+        [Inject] public IHttpContextAccessor HttpContextAccessor { get; set; }
+        [Inject] public MessageService MessageService { get; set; }
+        [Inject] public IJSRuntime JSRuntime { get; set; }
 
         private RenderFragment fragment = null;
 
@@ -25,7 +28,7 @@ namespace BlaScaf.Components.Pages
 
             if (BsConfig.Users.Find(f => f.Username == loginModel.Username) == null)
             {
-                this.msgSrv.Error("用户名或密码错误", 3);
+                this.MessageService.Error("用户名或密码错误", 3);
             }
             else
             {
@@ -35,7 +38,7 @@ namespace BlaScaf.Components.Pages
                 dto.Password = Utility.DESEncrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
                 BsSecurity.UserHashKey[dto.Username] = key;
 
-                await JS.InvokeVoidAsync("bsLogin", dto.Username, dto.Password, dto.Token, objRef);
+                await JSRuntime.InvokeVoidAsync("bsLogin", dto.Username, dto.Password, dto.Token, objRef);
             }
             isLoading = false;
             await InvokeAsync(StateHasChanged);
@@ -64,7 +67,7 @@ namespace BlaScaf.Components.Pages
             }
             else
             {
-                msgSrv.Error(message, 3);
+                MessageService.Error(message, 3);
             }
 
             StateHasChanged();

@@ -18,6 +18,11 @@ namespace BlaScaf
         public string Username { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// 密码md5的
         /// </summary>
         public string Password { get; set; }
