@@ -1,5 +1,6 @@
 ﻿@page "/user"
 @inject MessageService msg
+@attribute [Authorize]
 
 <PageHeader Title="@("用户中心")" Subtitle="@($"数量：{BsConfig.Users.Count}")">
     <PageHeaderExtra>

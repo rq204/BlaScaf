@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Text.Json
+@inherits LayoutComponentBase
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 
@@ -54,38 +55,68 @@
         </Content>
     </Layout>
 </Layout>
+<script>
+    window.keepAlive = (timeoutMinutes , dotNetObj) => {
+        const KEEPALIVE_URL = '/bsapi/keepalive';
+        const STORAGE_KEY = 'keepalive';
+        const CHECK_INTERVAL = timeoutMinutes / 2 * 60 * 1000 + 6000; // 检查时间为 超时时间一半多6秒
+        const ACTIVITY_THRESHOLD = timeoutMinutes/ 2 * 60 * 1000; // 用户活跃时间阈值为 超时时间一半
+        const TIMEOUT_MS = timeoutMinutes * 60 * 1000;
+
+        let lastActivity = Date.now();
+        let lastRequest = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+
+        // 记录用户最近操作时间
+        const recordActivity = () => {
+            lastActivity = Date.now();
+        };
+
+        ['click', 'mousemove', 'keydown', 'scroll'].forEach(event =>
+            document.addEventListener(event, recordActivity, { passive: true })
+        );
+
+        // 跨标签页同步 lastRequest
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEY && e.newValue) {
+                lastRequest = parseInt(e.newValue);
+            }
+        });
+
+        // 核心逻辑：是否触发保活请求
+        const tryKeepAlive = async () => {
+            const now = Date.now();
+            const userActiveRecently = now - lastActivity < ACTIVITY_THRESHOLD;
+            const timeoutExceeded = now - lastRequest > TIMEOUT_MS;
+
+            if (userActiveRecently || timeoutExceeded) {
+                try {
+                    const response = await fetch(KEEPALIVE_URL, {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    if (response.status === 401) {
+                        clearInterval(intervalId);
+                         if (dotNetObj && dotNetObj.invokeMethodAsync) {
+                                await dotNetObj.invokeMethodAsync("OnTimeOut");
+                            }
+                        return;
+                    }
+
+                    lastRequest = Date.now();
+                    localStorage.setItem(STORAGE_KEY, lastRequest.toString());
+                } catch (err) {
+                    console.warn('Keep-alive failed:', err);
+                }
+            }
+        };
+
+        // 间隔时间触发一次检查
+        let intervalId = setInterval(tryKeepAlive, CHECK_INTERVAL);
+    };
+</script>
+
 @code {
-    private bool collapsed = false;
-  
-    private void ToggleSidebar()
-    {
-        collapsed = !collapsed;
-    }
-
-    private string PageTitle = "首页";
-
-    protected override void OnInitialized()
-    {
-        NavigationManager.LocationChanged += OnLocationChanged;
-        UpdatePageTitle(NavigationManager.Uri);
-    }
-
-    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
-    {
-        UpdatePageTitle(e.Location);
-        StateHasChanged();
-    }
-
-    private void UpdatePageTitle(string uri)
-    {
-        var relativePath = NavigationManager.ToBaseRelativePath(uri).TrimEnd('/');
-        PageTitle = BsConfig.MenuItems.Find(f => f.RouterLink.Trim('/') == relativePath)?.Title;
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
 
 }
 

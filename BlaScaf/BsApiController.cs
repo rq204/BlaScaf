@@ -44,8 +44,7 @@ namespace BlaScaf
                         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         var authProperties = new AuthenticationProperties
                         {
-                            IsPersistent = true,
-                            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+                          //空为使用默认设置
                         };
 
                         await HttpContext.SignInAsync(
@@ -82,6 +81,18 @@ namespace BlaScaf
             return Ok();
         }
 
+        [HttpPost("keepalive")]
+        public IActionResult KeepAlive()
+        {
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                return Ok(); // 会话有效
+            }
 
+            // 会话过期，清除认证 Cookie
+            Response.Cookies.Delete("Cookies"); // ← 改成你配置的 Cookie 名
+
+            return Unauthorized(); // 返回 401 Unauthorized
+        }
     }
 }

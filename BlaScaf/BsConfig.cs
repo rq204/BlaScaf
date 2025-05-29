@@ -37,6 +37,11 @@ namespace BlaScaf
         public static int CookieTimeOutMinutes = 30;
 
         /// <summary>
+        /// 使用session cookie
+        /// </summary>
+        public static bool UseSessionCookie = true;
+
+        /// <summary>
         /// 头部的外部的组件
         /// </summary>
         public static List<RenderFragment> HeaderFragments = new List<RenderFragment>();
