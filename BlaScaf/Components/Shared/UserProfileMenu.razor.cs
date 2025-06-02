@@ -20,7 +20,7 @@ namespace BlaScaf.Components.Shared
         private void OnChangePassword()
         {
             // 导航到修改密码页（根据你的实际路由）
-            
+            this.changepwdVisible = true;
         }
 
         private void OnLogout()
@@ -54,5 +54,7 @@ namespace BlaScaf.Components.Shared
         {
             objRef?.Dispose();
         }
+
+        private bool changepwdVisible = false;
     }
 }

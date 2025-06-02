@@ -11,8 +11,10 @@ namespace BlaScaf
         private readonly AuthenticationStateProvider _authProvider;
 
         public int UserId { get; private set; }
-        public string Username { get; private set; }
+        public string UserName { get; private set; }
         public string Role { get; private set; }
+        public string FullName { get; private set; }
+
 
         public UserService(AuthenticationStateProvider authProvider)
         {
@@ -26,7 +28,7 @@ namespace BlaScaf
 
             if (user.Identity?.IsAuthenticated == true)
             {
-                Username = user.Identity.Name;
+                UserName = user.Identity.Name;
                 Role = user.FindFirst(ClaimTypes.Role)?.Value;
                 var userIdStr = user.FindFirst("UserId")?.Value;
 
@@ -36,7 +38,7 @@ namespace BlaScaf
             {
                 // 未登录用户清空属性
                 UserId = 0;
-                Username = null;
+                UserName = null;
                 Role = null;
             }
         }

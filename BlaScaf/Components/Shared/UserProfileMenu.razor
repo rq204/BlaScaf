@@ -12,10 +12,12 @@
     </Overlay>
     <ChildContent>
         <a class="ant-dropdown-link" style="display: flex; align-items: center; height: 32px;">
-            <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> @UserService.Username
+            <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> @(string.IsNullOrEmpty(UserService.FullName) ? UserService.UserName : UserService.FullName)
         </a>
     </ChildContent>
 </Dropdown>
+
+<ChangePassword IsForceChange=false @bind-Visible="@changepwdVisible" />
 
 <script>
     window.bsLogout = async function (dotNetObj) {

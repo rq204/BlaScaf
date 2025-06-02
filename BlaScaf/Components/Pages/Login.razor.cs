@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using static System.Net.WebRequestMethods;
 using System.Net;
 using Microsoft.JSInterop;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace BlaScaf.Components.Pages
 {
@@ -14,6 +15,7 @@ namespace BlaScaf.Components.Pages
     {
         private BsUser loginModel = new();
         private bool isLoading = false;
+        private bool isDisposed = false; // 添加disposed标志
 
         [Inject] public NavigationManager NavigationManager { get; set; }
         [Inject] public IHttpContextAccessor HttpContextAccessor { get; set; }
@@ -24,24 +26,36 @@ namespace BlaScaf.Components.Pages
 
         private async Task HandleLogin()
         {
+            if (isDisposed) return; // 检查是否已销毁
+
             isLoading = true;
 
-            if (BsConfig.Users.Find(f => f.Username == loginModel.Username) == null)
+            if (BsConfig.Users.Find(f => f.UserName == loginModel.UserName) == null)
             {
-                this.MessageService.Error("用户名或密码错误", 3);
+                if (!isDisposed) // 检查是否已销毁
+                {
+                    this.MessageService.Error("用户名或密码错误", 3);
+                }
             }
             else
             {
-                BsUser dto = new BsUser() { Username = loginModel.Username, Token = loginModel.Token };
+                BsUser dto = new BsUser() { UserName = loginModel.UserName, Token = loginModel.Token };
                 dto.Password = Utility.MD5(loginModel.Password);
                 string key = Guid.NewGuid().ToString("N");
                 dto.Password = Utility.DESEncrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
-                BsSecurity.UserHashKey[dto.Username] = key;
+                BsSecurity.UserHashKey[dto.UserName] = key;
 
-                await JSRuntime.InvokeVoidAsync("bsLogin", dto.Username, dto.Password, dto.Token, objRef);
+                if (!isDisposed) // 检查是否已销毁
+                {
+                    await JSRuntime.InvokeVoidAsync("bsLogin", dto.UserName, dto.Password, dto.Token, objRef);
+                }
             }
-            isLoading = false;
-            await InvokeAsync(StateHasChanged);
+
+            if (!isDisposed) // 检查是否已销毁
+            {
+                isLoading = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
 
         protected override async Task OnInitializedAsync()
@@ -59,6 +73,9 @@ namespace BlaScaf.Components.Pages
         [JSInvokable]
         public async Task OnLoginResult(bool success, string message)
         {
+            // 检查组件是否已经被销毁
+            if (isDisposed) return;
+
             isLoading = false;
 
             if (success)
@@ -70,13 +87,24 @@ namespace BlaScaf.Components.Pages
                 MessageService.Error(message, 3);
             }
 
-            StateHasChanged();
+            // 安全地调用StateHasChanged
+            try
+            {
+                if (!isDisposed)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // 组件已被销毁，忽略此异常
+            }
         }
 
         public async ValueTask DisposeAsync()
         {
+            isDisposed = true; // 设置销毁标志
             objRef?.Dispose();
         }
-
     }
 }

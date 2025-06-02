@@ -43,40 +43,41 @@
     }
 </style>
 <script>
-    window.bsLogin = async function (username, password, token, dotNetObj) {
-        let dto = {
-            username: username,
-            password: password,
-            token: token
-        };
+     window.bsLogin = async function (username, password, token, dotNetObj) {
+         let dto = {
+             username: username,
+             password: password,
+             token: token
+         };
 
-        let success = false;
-        let message = "";
+         let success = false;
+         let message = "";
 
-        try {
-            let response = await fetch('/bsapi/login', {
-                method: 'POST',
-                credentials: 'include', // 关键：要能收到 Set-Cookie
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(dto)
-            });
+         try {
+             let response = await fetch('/bsapi/login', {
+                 method: 'POST',
+                 credentials: 'include', // 关键：要能收到 Set-Cookie
+                 headers: {
+                     'Content-Type': 'application/json'
+                 },
+                 body: JSON.stringify(dto)
+             });
 
-            if (response.ok) {
-                success = true;
-            } else if (response.status === 401) {
-                message = "用户名或密码错误";
-            } else {
-                message = "登录失败";
-            }
-        } catch (err) {
-            message = "网络错误：" + err.message;
-        }
+             const responseText = await response.text();
+             if (response.ok) {
+                 success = true;
+             } else if (response.status === 401) {
+                 message = responseText;
+             } else {
+                 message = "登录失败:" + responseText ;
+             }
+         } catch (err) {
+             message = "网络错误：" + err.message;
+         }
 
-        if (dotNetObj && dotNetObj.invokeMethodAsync) {
-            await dotNetObj.invokeMethodAsync("OnLoginResult", success, message);
-        }
+         if (dotNetObj && dotNetObj.invokeMethodAsync) {
+             await dotNetObj.invokeMethodAsync("OnLoginResult", success, message);
+         }
     }
 </script>
 
@@ -84,7 +85,7 @@
     <div class="login-card">
         <div class="login-title">@BsConfig.AppName</div>
         <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
-            <Input @bind-Value="loginModel.Username" Placeholder="用户名" PrefixIcon="user" Required="true" />
+            <Input @bind-Value="loginModel.UserName" Placeholder="用户名" PrefixIcon="user" Required="true" />
             <div style="height: 16px;"></div>
             <Input @bind-Value="loginModel.Password" Placeholder="密码" PrefixIcon="lock" Type=" InputType.Password" Required="true" />
             <div style="height: 16px;"></div>
@@ -106,4 +107,3 @@
         </EditForm>
     </div>
 </div>
-

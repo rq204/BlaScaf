@@ -15,13 +15,28 @@ namespace BlaScaf
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] BsUser dto)
         {
-            BsUser bu = BsConfig.Users.Find(f => f.Username == dto.Username);
+            BsUser bu = BsConfig.Users.Find(f => f.UserName == dto.UserName);
             if (bu != null)
             {
-                if (BsSecurity.UserHashKey.ContainsKey(dto.Username))
+                if (BsSecurity.UserHashKey.ContainsKey(dto.UserName))
                 {
-                    string key = BsSecurity.UserHashKey[dto.Username];
-                    BsSecurity.UserHashKey.Remove(dto.Username);
+                    string key = BsSecurity.UserHashKey[dto.UserName];
+                    BsSecurity.UserHashKey.Remove(dto.UserName);
+
+                    if (BsSecurity.PasswordError.TryGetValue(dto.UserName, out var errorList))
+                    {
+                        var thresholdTime = DateTime.Now.AddMinutes(-5);
+                        var recentErrors = errorList.Where(t => t > thresholdTime).ToList();
+
+                        if (recentErrors.Count >= 3)
+                        {
+                            var mostRecentErrorTime = recentErrors.Max();
+                            var waitMinutes = (int)Math.Ceiling((mostRecentErrorTime.AddMinutes(5) - DateTime.Now).TotalMinutes);
+                            waitMinutes = Math.Max(waitMinutes, 1); // 至少提示 1 分钟，避免显示 0
+
+                            return Unauthorized($"密码多次错误，请{waitMinutes}分钟后再试");
+                        }
+                    }
 
                     string md5pw = null;
                     try
@@ -35,16 +50,20 @@ namespace BlaScaf
 
                     if (md5pw == bu.Password)
                     {
+                        BsSecurity.PasswordError.Remove(dto.UserName);
+
+
                         var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name,bu.Username),
+                new Claim(ClaimTypes.Name,bu.UserName),
+                new Claim("FullName",string.IsNullOrEmpty(bu.FullName)?"":bu.FullName),
                 new Claim("UserId",bu.UserId.ToString()),
                 new Claim(ClaimTypes.Role, bu.Role)
             };
                         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         var authProperties = new AuthenticationProperties
                         {
-                          //空为使用默认设置
+                            //空为使用默认设置
                         };
 
                         await HttpContext.SignInAsync(
@@ -53,9 +72,17 @@ namespace BlaScaf
                             authProperties
                         );
                         return Ok();
+
                     }
                     else
                     {
+                        if (!BsSecurity.PasswordError.TryGetValue(dto.UserName, out var list))
+                        {
+                            list = new List<DateTime>();
+                            BsSecurity.PasswordError[dto.UserName] = list;
+                        }
+                        list.Add(DateTime.Now);
+
                         return Unauthorized("用户名或密码错误");
                     }
                 }
@@ -90,7 +117,7 @@ namespace BlaScaf
             }
 
             // 会话过期，清除认证 Cookie
-            Response.Cookies.Delete("Cookies"); // ← 改成你配置的 Cookie 名
+            Response.Cookies.Delete(".AspNetCore.Cookies"); // ← 改成你配置的 Cookie 名
 
             return Unauthorized(); // 返回 401 Unauthorized
         }

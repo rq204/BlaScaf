@@ -11,42 +11,6 @@ namespace BlaScaf
 {
     public static class Startup
     {
-        public static void Main(string[] args)
-        {
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "admin", "管理员" }, RouterLink = "/", Title = "首页" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "demo", Icon = "user", Roles = new List<string>() { "admin", "管理员" }, RouterLink = "/demo", Title = "演示页面" });
-
-            RenderFragment fragment = builder =>
-            {
-                builder.OpenComponent<DemoFragment>(0);
-                builder.AddAttribute(1, "Title", "我是动态组件");
-                builder.AddAttribute(2, "Content", $"生成于 {DateTime.Now:T}");
-                builder.CloseComponent();
-            };
-
-            BsConfig.HeaderFragments.Add(fragment);
-
-            //添加示例帐号
-            BsConfig.Users.Add(new BsUser() { UserId = 1, Username = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-30), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
-
-            BsConfig.CookieTimeOutMinutes = 1;
-
-            var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddBsService();
-
-            var app = builder.Build();
-
-            // 错误页面配置
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Error");
-            }
-
-            app.UseBsService();
-
-            app.Run();
-        }
-
         public static void AddBsService(this IServiceCollection services)
         {
             // 添加 Razor 组件服务

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Diagnostics;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace BlaScaf
 {
@@ -102,6 +103,26 @@ namespace BlaScaf
             byte[] result = new byte[length];
             Array.Copy(data, result, length);
             return result;
+        }
+
+        /// <summary>
+        /// 验证密码是否符合规则：
+        /// 2. 至少包含一个数字
+        /// 3. 至少包含一个小写字母
+        /// 4. 至少包含一个大写字母
+        /// </summary>
+        /// <param name="password">待验证的密码</param>
+        /// <returns>是否有效</returns>
+        public static bool IsValidPassword(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                return false;
+
+            bool hasDigit = Regex.IsMatch(password, @"\d");
+            bool hasLower = Regex.IsMatch(password, @"[a-z]");
+            bool hasUpper = Regex.IsMatch(password, @"[A-Z]");
+
+            return hasDigit && hasLower && hasUpper;
         }
     }
 }

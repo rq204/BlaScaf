@@ -27,7 +27,7 @@ namespace BlaScaf
         public static List<BsUser> Users = new List<BsUser>();
 
         /// <summary>
-        /// 添加或更新用户信息
+        /// 添加或更新用户信息,可以做一些检查，比如密码强度不够可以抛异常出去
         /// </summary>
         public static Action<BsUser> AddOrUpdateUser;
 
@@ -35,6 +35,11 @@ namespace BlaScaf
         /// Cookie超时时间分钟
         /// </summary>
         public static int CookieTimeOutMinutes = 30;
+
+        /// <summary>
+        /// 多少天必须修改密码
+        /// </summary>
+        public static int ChangePwdDays = 365;
 
         /// <summary>
         /// 使用session cookie
@@ -50,5 +55,25 @@ namespace BlaScaf
         /// 验证码组件
         /// </summary>
         public static Func<RenderFragment> CaptchaFragment = null;
+
+        /// <summary>
+        /// 获取操作日志,PageIndex,PageSize,UserId
+        /// </summary>
+        public static Func<int, int, int, QueryRsp<List<BsOptLog>>> GetOptLogs;
+
+        /// <summary>
+        /// 添加操作日志
+        /// </summary>
+        public static Action<BsOptLog> AddOptLog;
+
+        /// <summary>
+        /// 获取系统日志,PageIndex,PageSize
+        /// </summary>
+        public static Func<int, int, QueryRsp<List<BsSysLog>>> GetSysLogs;
+
+        /// <summary>
+        /// 添加系统日志
+        /// </summary>
+        public static Action<BsSysLog> AddSysLog;
     }
 }
