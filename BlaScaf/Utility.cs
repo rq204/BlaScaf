@@ -124,5 +124,28 @@ namespace BlaScaf
 
             return hasDigit && hasLower && hasUpper;
         }
+
+        /// <summary>
+        /// 更新不同的值，用于给freesql只更新新字段
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">源变量</param>
+        /// <param name="target">目标变量</param>
+        public static void UpdateDifferentProperties<T>(T source, T target)
+        {
+            var type = typeof(T);
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!prop.CanRead || !prop.CanWrite) continue;
+
+                var sourceValue = prop.GetValue(source);
+                var targetValue = prop.GetValue(target);
+
+                if (!object.Equals(sourceValue, targetValue))
+                {
+                    prop.SetValue(target, sourceValue);
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿
 using AntDesign;
 using BlaScaf.Components.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 
@@ -16,12 +17,14 @@ namespace BlaScaf.Components.Layout
         }
 
         private string PageTitle = "首页";
+        List<RenderFragment> fragments = new List<RenderFragment>();
 
         protected override void OnInitialized()
         {
             objRef = DotNetObjectReference.Create(this);
             NavigationManager.LocationChanged += OnLocationChanged;
             UpdatePageTitle(NavigationManager.Uri);
+            this.fragments = BsConfig.HeaderFragments.ToArray().ToList();
         }
 
         private void OnLocationChanged(object sender, LocationChangedEventArgs e)

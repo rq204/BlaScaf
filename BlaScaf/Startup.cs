@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 namespace BlaScaf
@@ -98,11 +99,32 @@ namespace BlaScaf
             // 映射控制器路由（如 Web API 或传统 MVC 控制器），这句必须有，否则控制器不会生效
             app.MapControllers();
 
+          
             // 映射 Razor 组件（Blazor）入口点，并启用 Blazor Server 的交互式渲染模式
             // 其中 App 是组件的根组件
             app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode(); // 启用 Blazor Server 模式（非 WebAssembly）
+                .AddInteractiveServerRenderMode().AddAdditionalAssemblies(GetAdditionalAssemblies()!); // 启用 Blazor Server 模式（非 WebAssembly）
         }
 
+        /// <summary>
+        /// 获取其它程序集
+        /// </summary>
+        /// <returns></returns>
+        public static Assembly[] GetAdditionalAssemblies()
+        {
+            var mainAppAssembly = typeof(App).Assembly;
+            var entryAssembly = Assembly.GetEntryAssembly();
+
+            // 构建一个不重复的列表
+            var additionalAssemblies = new[]
+            {
+    entryAssembly,
+    // 其它你想加的程序集
+}
+            .Where(asm => asm != null && asm != mainAppAssembly) // 去重
+            .Distinct()
+            .ToArray();
+            return additionalAssemblies;
+        }
     }
 }

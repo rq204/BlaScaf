@@ -1,0 +1,9 @@
+﻿@page "/syslogs"
+
+<PageHeader Title="@("系统日志")" Subtitle="@($"数量：{this.logsrsp.Total}")">
+</PageHeader>
+
+<Table @ref="table" Loading="@isloading" TItem="@BsSysLog" DataSource="@this.logsrsp.Value" PageSizeChanged="@PageSizeChange" PageSize="@pageSize" Total="@this.logsrsp.Total" PageIndexChanged="@PageIndexChange" PageIndex="@pageIndex">
+    <PropertyColumn Property="c=>c.SysLogId" Title="日志ID" />
+    <PropertyColumn Title="操作时间" Property="c=>c.SysTime" Format="yyyy-MM-dd HH:mm:ss" />
+</Table>

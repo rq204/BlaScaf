@@ -1,6 +1,6 @@
 ﻿@inject NavigationManager NavigationManager
 <CascadingAuthenticationState>
-    <Router AppAssembly="@this.GetType().Assembly">
+    <Router AppAssembly="@this.GetType().Assembly" AdditionalAssemblies="Startup.GetAdditionalAssemblies()">
         <Found Context="routeData">
             @if (routeData.PageType == typeof(BlaScaf.Components.Pages.Login))
             {

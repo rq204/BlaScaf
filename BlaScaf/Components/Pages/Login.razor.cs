@@ -34,7 +34,7 @@ namespace BlaScaf.Components.Pages
             {
                 if (!isDisposed) // 检查是否已销毁
                 {
-                    this.MessageService.Error("用户名或密码错误", 3);
+                    await this.MessageService.ErrorAsync("用户名或密码错误", 3);
                 }
             }
             else
@@ -84,7 +84,7 @@ namespace BlaScaf.Components.Pages
             }
             else
             {
-                MessageService.Error(message, 3);
+                await MessageService.ErrorAsync(message, 3);
             }
 
             // 安全地调用StateHasChanged
