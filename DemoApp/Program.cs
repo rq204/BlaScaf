@@ -13,12 +13,12 @@ namespace DemoApp
         {
             BsConfig.AppName = "BlaScaf管理系统演示";
             BsConfig.CookieTimeOutMinutes = 30;
-            BsConfig.ChangePwdDays = 1;
+            BsConfig.ChangePwdDays = 90;
 
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "管理员" }, RouterLink = "/", Title = "首页" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/", Title = "首页" });
             BsConfig.MenuItems.Add(new BsMenuItem() { Key = "users", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/users", Title = "用户管理" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "edit", Roles = new List<string>() { "管理员" }, RouterLink = "/optlogs", Title = "操作日志" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "highlight", Roles = new List<string>() { "管理员" }, RouterLink = "/syslogs", Title = "系统日志" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "edit", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/optlogs", Title = "操作日志" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "highlight", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/syslogs", Title = "系统日志" });
 
             RenderFragment fragment = builder =>
             {
@@ -39,7 +39,7 @@ namespace DemoApp
             ///设置权限
             BsConfig.Roles = new List<string>() { "管理员", "操作员" };
             //添加示例帐号
-            BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-130), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
+            BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-1), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
 
             BsConfig.GetOptLogs = new Func<int, int, int, QueryRsp<List<BsOptLog>>>((a, b, c) =>
             {
@@ -48,7 +48,7 @@ namespace DemoApp
                 {
                     datas.Value.Add(new BsOptLog() { OptLogId = i, OptTime = DateTime.Now.AddMinutes(0 - i), Summary = "示例操作" });
                 }
-                datas.Total= datas.Value.Count;
+                datas.Total = datas.Value.Count;
                 return datas;
             });
             BsConfig.GetSysLogs = new Func<int, int, QueryRsp<List<BsSysLog>>>((pageindex, pagesize) =>
@@ -62,7 +62,32 @@ namespace DemoApp
                 return datas;
             });
 
-            BsConfig.AddOrUpdateUser = new Action<BsUser>((u) => { });
+            BsConfig.AddOrUpdateUser = new Action<BsUser>((u) =>
+            {
+                if (u.UserId == 0)
+                {
+                    if (u.Role == "管理员" && u.Password.Length < 15) throw new Exception("管理员密码长度必须大于等于15位");
+                    u.Password = Utility.MD5(u.Password);
+                    BsConfig.Users.Add(u);
+                    u.UserId = BsConfig.Users.Count;
+                }
+                else
+                {
+                    BsUser old = BsConfig.Users.Find(f => f.UserId == u.UserId);
+                    if (!string.IsNullOrEmpty(u.Password) && u.Password.Length != 32)
+                    {
+                        if (u.Role == "管理员" && u.Password.Length < 15) throw new Exception("管理员密码长度必须大于等于15位");
+                        u.Password = Utility.MD5(u.Password);
+                    }
+                    else
+                    {
+                        u.Password = old.Password;
+                    }
+
+                    ///更新字段
+                    Utility.UpdateDifferentProperties<BsUser>(u, old);
+                }
+            });
             BsConfig.AddSysLog = new Action<BsSysLog>((x) => { });
             BsConfig.AddOptLog = new Action<BsOptLog>((x) => { });
 

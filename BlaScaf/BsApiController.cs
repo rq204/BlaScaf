@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace BlaScaf
 {
@@ -54,16 +56,19 @@ namespace BlaScaf
 
                         if (bu.EndTime > DateTime.Now)
                         {
-                            bu.Token = Guid.NewGuid().ToString();
-                            BsConfig.AddOrUpdateUser(bu);
+                            var json = JsonSerializer.Serialize(bu);
+                            BsUser user = JsonSerializer.Deserialize<BsUser>(json);
+                            user.Token = Guid.NewGuid().ToString();
+                            user.LastLogin = DateTime.Now;
+                            BsConfig.AddOrUpdateUser(user);
 
                             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name,bu.UserName),
-                new Claim("FullName",string.IsNullOrEmpty(bu.FullName)?"":bu.FullName),
-                new Claim("UserId",bu.UserId.ToString()),
-                new Claim(ClaimTypes.Role, bu.Role),
-                new Claim("Token",bu.Token),
+                new Claim(ClaimTypes.Name,user.UserName),
+                new Claim("FullName",string.IsNullOrEmpty(user.FullName)?"":user.FullName),
+                new Claim("UserId",user.UserId.ToString()),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("Token",user.Token),
             };
                             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                             var authProperties = new AuthenticationProperties

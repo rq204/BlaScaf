@@ -59,12 +59,12 @@ namespace BlaScaf
         /// <summary>
         /// 是否启用
         /// </summary>
-        public bool Enable { get; set; }
+        public bool Enable { get; set; } = true;
 
         /// <summary>
         /// 最后密码修改时间
         /// </summary>
-        public DateTime LastChangePwd { get; set; }
+        public DateTime LastChangePwd { get; set; } = DateTime.Now;
 
         /// <summary>
         /// 页面登录后的Token
@@ -75,7 +75,7 @@ namespace BlaScaf
         /// <summary>
         /// 最后登录时间
         /// </summary>
-        public DateTime LastLogin { get; set; }
+        public DateTime LastLogin { get; set; } = DateTime.MinValue;
 
         /// <summary>
         /// 注册ip
@@ -92,7 +92,7 @@ namespace BlaScaf
         /// <summary>
         /// 过期时间
         /// </summary>
-        public DateTime EndTime { get; set; }
+        public DateTime EndTime { get; set; } = DateTime.Now.AddYears(100);
 
         /// <summary>
         /// 历史项目保留，设计器Token，可自定义用途
@@ -121,7 +121,7 @@ namespace BlaScaf
         internal string Validate()
         {
             if (string.IsNullOrEmpty(this.UserName)) return "用户名不能为空";
-            if (string.IsNullOrEmpty(this.Password)) return "密码不能为空";
+            if (this.UserId == 0 && string.IsNullOrEmpty(this.Password)) return "密码不能为空";
             if (string.IsNullOrEmpty(this.Role)) return "角色不能为空";
             return null;
         }

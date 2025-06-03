@@ -52,6 +52,19 @@ namespace BlaScaf.Components.Pages
             {
                 try
                 {
+                    if (editUser.UserId == 0)
+                    {
+                        BsUser find = BsConfig.Users.Find(f => f.UserName == editUser.UserName || (!string.IsNullOrEmpty(editUser.FullName) && f.FullName == editUser.FullName));
+                        if (find != null) throw new Exception("已经存在同名用户名或姓名");
+                    }
+                    else
+                    {
+                        BsUser find = BsConfig.Users.Find(f => f.UserId != editUser.UserId && (f.UserName == editUser.UserName || (!string.IsNullOrEmpty(editUser.FullName) && f.FullName == editUser.FullName)));
+                        if (find != null) throw new Exception("已经存在同名用户名或姓名");
+                    }
+
+                    if (!string.IsNullOrEmpty(editUser.Password) && (editUser.Password.Length < 8 || !Utility.IsValidPassword(editUser.Password))) throw new Exception("密码至少要为8位且包含大小写和数字");
+
                     BsConfig.AddOrUpdateUser(this.editUser);
                     if (editUser.UserId == 0) this.pageIndex = 0;
                     drawerVisible = false;
@@ -88,7 +101,7 @@ namespace BlaScaf.Components.Pages
 
         void NewDrawer()
         {
-            editUser = new BsUser() { Enable = true, EndTime = DateTime.Now.AddYears(100), LastLogin = DateTime.MinValue };
+            editUser = new BsUser();
             this.drawerVisible = true;
             this.editTitle = "添加用户";
         }

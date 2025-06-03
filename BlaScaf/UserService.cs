@@ -14,6 +14,7 @@ namespace BlaScaf
         public string UserName { get; private set; }
         public string Role { get; private set; }
         public string FullName { get; private set; }
+        public string Token { get;private set; }
 
 
         public UserService(AuthenticationStateProvider authProvider)
@@ -35,6 +36,7 @@ namespace BlaScaf
                     UserName = null;
                     FullName = null;
                     Role = null;
+                    Token = null;
                 }
                 else
                 {
@@ -42,6 +44,7 @@ namespace BlaScaf
                     Role = user.FindFirst(ClaimTypes.Role)?.Value;
                     var userIdStr = user.FindFirst("UserId")?.Value;
                     UserId = int.TryParse(userIdStr, out var uid) ? uid : 0;
+                    Token = token;
                 }
             }
             else
@@ -51,6 +54,7 @@ namespace BlaScaf
                 UserName = null;
                 FullName = null;
                 Role = null;
+                Token = null;
             }
         }
     }

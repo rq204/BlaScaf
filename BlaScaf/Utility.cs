@@ -13,6 +13,9 @@ using System.Text.RegularExpressions;
 
 namespace BlaScaf
 {
+    /// <summary>
+    /// 一些常用的工具类
+    /// </summary>
     public class Utility
     {
         /// <summary>

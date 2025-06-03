@@ -40,7 +40,14 @@ namespace BlaScaf.Components.Layout
         private void UpdatePageTitle(string uri)
         {
             var relativePath = NavigationManager.ToBaseRelativePath(uri).TrimEnd('/');
-            PageTitle = BsConfig.MenuItems.Find(f => f.RouterLink.Trim('/') == relativePath)?.Title;
+            BsMenuItem bsMenu = BsConfig.MenuItems.Find(f => f.RouterLink.Trim('/') == relativePath);
+            PageTitle = bsMenu?.Title;
+
+            ///权限不足
+            if (bsMenu == null || (this.UserService.Role != null && !bsMenu.Roles.Contains(this.UserService.Role)))
+            {
+                NavigationManager.NavigateTo("/", forceLoad: true);
+            }
         }
 
         public void Dispose()
@@ -89,7 +96,7 @@ namespace BlaScaf.Components.Layout
             {
                 onlyfirstchange = false;
                 BsUser bu = BsConfig.Users.Find(f => f.UserId == this.UserService.UserId);
-                if (bu != null && bu.LastChangePwd < DateTime.Now)
+                if (bu != null && bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
                 {
                     changepwdVisible = true;
                 }
