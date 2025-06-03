@@ -12,7 +12,22 @@ namespace BlaScaf
         public static string AppName = "BlaScaf信息管理系统";
 
         /// <summary>
-        /// 用户角色，在用户组中可以选择
+        /// Cookie超时时间分钟
+        /// </summary>
+        public static int CookieTimeOutMinutes = 30;
+
+        /// <summary>
+        /// 使用session cookie
+        /// </summary>
+        public static bool UseSessionCookie = true;
+
+        /// <summary>
+        /// 多少天必须修改密码
+        /// </summary>
+        public static int ChangePwdDays = 365;
+
+        /// <summary>
+        /// 用户角色，添加用户时用户组中可以选择
         /// </summary>
         public static List<string> Roles = new List<string>();
 
@@ -27,39 +42,9 @@ namespace BlaScaf
         public static List<BsUser> Users = new List<BsUser>();
 
         /// <summary>
-        /// 添加或更新用户信息,可以做一些检查，比如密码强度不够可以抛异常出去
-        /// </summary>
-        public static Action<BsUser> AddOrUpdateUser;
-
-        /// <summary>
-        /// Cookie超时时间分钟
-        /// </summary>
-        public static int CookieTimeOutMinutes = 30;
-
-        /// <summary>
-        /// 多少天必须修改密码
-        /// </summary>
-        public static int ChangePwdDays = 365;
-
-        /// <summary>
-        /// 使用session cookie
-        /// </summary>
-        public static bool UseSessionCookie = true;
-
-        /// <summary>
         /// 头部的外部的组件
         /// </summary>
         public static List<RenderFragment> HeaderFragments = new List<RenderFragment>();
-
-        /// <summary>
-        /// 验证码组件
-        /// </summary>
-        public static Func<RenderFragment> CaptchaFragment = null;
-
-        /// <summary>
-        /// 获取操作日志,PageIndex,PageSize,UserId
-        /// </summary>
-        public static Func<int, int, int, QueryRsp<List<BsOptLog>>> GetOptLogs;
 
         /// <summary>
         /// 添加操作日志
@@ -67,13 +52,28 @@ namespace BlaScaf
         public static Action<BsOptLog> AddOptLog;
 
         /// <summary>
+        /// 添加系统日志
+        /// </summary>
+        public static Action<BsSysLog> AddSysLog;
+
+        /// <summary>
+        /// 添加或更新用户信息,可以做一些检查，比如密码强度不够可以抛异常出去
+        /// </summary>
+        public static Action<BsUser> AddOrUpdateUser;
+
+        /// <summary>
+        /// 获取操作日志,PageIndex,PageSize,UserId
+        /// </summary>
+        public static Func<int, int, int, QueryRsp<List<BsOptLog>>> GetOptLogs;
+
+        /// <summary>
         /// 获取系统日志,PageIndex,PageSize
         /// </summary>
         public static Func<int, int, QueryRsp<List<BsSysLog>>> GetSysLogs;
 
         /// <summary>
-        /// 添加系统日志
+        /// 验证码组件
         /// </summary>
-        public static Action<BsSysLog> AddSysLog;
+        public static Func<RenderFragment> CaptchaFragment = null;
     }
 }

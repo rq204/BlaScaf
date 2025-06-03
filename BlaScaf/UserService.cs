@@ -28,17 +28,28 @@ namespace BlaScaf
 
             if (user.Identity?.IsAuthenticated == true)
             {
-                UserName = user.Identity.Name;
-                Role = user.FindFirst(ClaimTypes.Role)?.Value;
-                var userIdStr = user.FindFirst("UserId")?.Value;
-
-                UserId = int.TryParse(userIdStr, out var uid) ? uid : 0;
+                string token = user.FindFirst("Token")?.Value;
+                if (string.IsNullOrEmpty(token) || token != BsConfig.Users.Find(f => f.Token == token)?.Token)
+                {
+                    UserId = 0;
+                    UserName = null;
+                    FullName = null;
+                    Role = null;
+                }
+                else
+                {
+                    UserName = user.Identity.Name;
+                    Role = user.FindFirst(ClaimTypes.Role)?.Value;
+                    var userIdStr = user.FindFirst("UserId")?.Value;
+                    UserId = int.TryParse(userIdStr, out var uid) ? uid : 0;
+                }
             }
             else
             {
                 // 未登录用户清空属性
                 UserId = 0;
                 UserName = null;
+                FullName = null;
                 Role = null;
             }
         }

@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="AntDesign" Version="1.4.0" />
     <PackageReference Include="FreeSql" Version="3.2.682" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.9.0" />
   </ItemGroup>
 
 </Project>

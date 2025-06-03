@@ -17,6 +17,7 @@ namespace DemoApp
             BsConfig.MenuItems.Add(new BsMenuItem() { Key = "users", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/users", Title = "用户管理" });
             BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/optlogs", Title = "操作日志" });
             BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/syslogs", Title = "系统日志" });
+
             RenderFragment fragment = builder =>
             {
                 builder.OpenComponent<Shared.DemoFragment>(0);
@@ -24,9 +25,7 @@ namespace DemoApp
                 builder.AddAttribute(2, "Content", $"生成于 {DateTime.Now:T}");
                 builder.CloseComponent();
             };
-
             BsConfig.HeaderFragments.Add(fragment);
-            BsConfig.AddOrUpdateUser = new Action<BsUser>((u) => { });
 
             //添加示例帐号
             BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-130), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
@@ -51,6 +50,8 @@ namespace DemoApp
                 datas.Total = datas.Value.Count;
                 return datas;
             });
+
+            BsConfig.AddOrUpdateUser = new Action<BsUser>((u) => { });
             BsConfig.AddSysLog = new Action<BsSysLog>((x) => { });
             BsConfig.AddOptLog = new Action<BsOptLog>((x) => { });
 

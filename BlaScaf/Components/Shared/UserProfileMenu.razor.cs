@@ -12,9 +12,10 @@ namespace BlaScaf.Components.Shared
         [Inject] public MessageService MessageService { get; set; }
         [Inject] public IJSRuntime JSRuntime { get; set; }
 
+        private CancellationTokenSource _cts = new();
+        Timer _timer;
         protected override async Task OnInitializedAsync()
         {
-            await UserService.LoadUserInfoAsync();
         }
 
         private void OnChangePassword()
@@ -33,6 +34,8 @@ namespace BlaScaf.Components.Shared
         protected override void OnInitialized()
         {
             objRef = DotNetObjectReference.Create(this);
+            // 每 30 秒检查一次
+            _timer = new Timer(async _ => await CheckSession(), null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
         }
 
         [JSInvokable]
@@ -53,8 +56,23 @@ namespace BlaScaf.Components.Shared
         public async ValueTask DisposeAsync()
         {
             objRef?.Dispose();
+            _timer?.Dispose();
         }
 
         private bool changepwdVisible = false;
+
+        private async Task CheckSession()
+        {
+            await this.UserService.LoadUserInfoAsync();
+            if (this.UserService.UserId == 0)
+            {
+                ///todo 问题没找到
+                try
+                {
+                    NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
+                }
+                catch { }
+            }
+        }
     }
 }

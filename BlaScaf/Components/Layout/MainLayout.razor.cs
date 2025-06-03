@@ -9,6 +9,8 @@ namespace BlaScaf.Components.Layout
 {
     public partial class MainLayout : IAsyncDisposable
     {
+        [Inject] public UserService UserService { get; set; }
+
         private bool collapsed = false;
 
         private void ToggleSidebar()
@@ -64,5 +66,6 @@ namespace BlaScaf.Components.Layout
         {
             objRef?.Dispose();
         }
+
     }
 }

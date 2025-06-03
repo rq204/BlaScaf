@@ -4,7 +4,6 @@ using BlaScaf.Components.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
-using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Text;
 
@@ -59,7 +58,6 @@ namespace BlaScaf
                         options.Cookie.Expiration = null; // 关键点：不设置具体过期时间，浏览器关闭即失效
                     }
                 });
-
 
             // 添加授权服务，用于控制访问权限（配合 [Authorize] 特性使用）
             // 这是 ASP.NET Core 授权系统的核心服务注册

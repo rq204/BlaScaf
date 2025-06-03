@@ -52,13 +52,16 @@ namespace BlaScaf
                     {
                         BsSecurity.PasswordError.Remove(dto.UserName);
 
+                        bu.Token=Guid.NewGuid().ToString();
+                        BsConfig.AddOrUpdateUser(bu);
 
                         var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name,bu.UserName),
                 new Claim("FullName",string.IsNullOrEmpty(bu.FullName)?"":bu.FullName),
                 new Claim("UserId",bu.UserId.ToString()),
-                new Claim(ClaimTypes.Role, bu.Role)
+                new Claim(ClaimTypes.Role, bu.Role),
+                new Claim("Token",bu.Token),
             };
                         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         var authProperties = new AuthenticationProperties
@@ -100,12 +103,20 @@ namespace BlaScaf
         /// <summary>
         /// 退出登录
         /// </summary>
+        /// <param name="kicked">是否被挤下线</param>
         /// <returns></returns>
-        [HttpPost("logout")]
-        public async Task<IActionResult> Logout()
+        [HttpGet("logout")]
+        public async Task<IActionResult> Logout([FromQuery] bool kicked)
         {
             await HttpContext.SignOutAsync();
-            return Ok();
+            if (kicked)
+            {
+                return Redirect("/");
+            }
+            else
+            {
+                return Ok();
+            }
         }
 
         [HttpPost("keepalive")]
