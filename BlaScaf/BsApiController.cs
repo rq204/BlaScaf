@@ -52,10 +52,12 @@ namespace BlaScaf
                     {
                         BsSecurity.PasswordError.Remove(dto.UserName);
 
-                        bu.Token=Guid.NewGuid().ToString();
-                        BsConfig.AddOrUpdateUser(bu);
+                        if (bu.EndTime > DateTime.Now)
+                        {
+                            bu.Token = Guid.NewGuid().ToString();
+                            BsConfig.AddOrUpdateUser(bu);
 
-                        var claims = new List<Claim>
+                            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name,bu.UserName),
                 new Claim("FullName",string.IsNullOrEmpty(bu.FullName)?"":bu.FullName),
@@ -63,19 +65,23 @@ namespace BlaScaf
                 new Claim(ClaimTypes.Role, bu.Role),
                 new Claim("Token",bu.Token),
             };
-                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        var authProperties = new AuthenticationProperties
+                            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                            var authProperties = new AuthenticationProperties
+                            {
+                                //空为使用默认设置
+                            };
+
+                            await HttpContext.SignInAsync(
+                                CookieAuthenticationDefaults.AuthenticationScheme,
+                                new ClaimsPrincipal(claimsIdentity),
+                                authProperties
+                            );
+                            return Ok();
+                        }
+                        else
                         {
-                            //空为使用默认设置
-                        };
-
-                        await HttpContext.SignInAsync(
-                            CookieAuthenticationDefaults.AuthenticationScheme,
-                            new ClaimsPrincipal(claimsIdentity),
-                            authProperties
-                        );
-                        return Ok();
-
+                            return Unauthorized("帐号已过期");
+                        }
                     }
                     else
                     {

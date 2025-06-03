@@ -1,5 +1,4 @@
 ﻿@page "/users"
-@inject MessageService msg
 @attribute [Authorize]
 
 <PageHeader Title="@("用户中心")" Subtitle="@($"数量：{this.userrsp.Total}")">
@@ -11,11 +10,20 @@
 <Table @ref="table" Loading="@isloading" TItem="BsUser" DataSource="@this.userrsp.Value" PageSize="15" Total="@this.userrsp.Total" PageIndexChanged="@PageIndexChange" PageIndex="@pageIndex">
     <PropertyColumn Property="c=>c.UserId" Title="用户ID" />
     <PropertyColumn Title="用户名" Property="c=>c.UserName" />
-    <PropertyColumn Title="角色" Property="c=>c.Role"/>
+    <PropertyColumn Title="姓名" Property="c=>c.FullName" />
+    <PropertyColumn Title="角色" Property="c=>c.Role" />
     <PropertyColumn Title="添加时间" Property="c=>c.AddTime" Format="yyyy-MM-dd HH:mm:ss" />
-    <PropertyColumn Title="状态" Property="c=>c.Enable"/>
+    <PropertyColumn Title="最后登录" Property="c=>c.LastLogin" Format="yyyy-MM-dd HH:mm:ss" />
+    <PropertyColumn Title="过期时间" Property="c=>c.EndTime" Format="yyyy-MM-dd HH:mm:ss" />
+    <PropertyColumn Title="状态" Property="c=>c.Enable" />
     <ActionColumn Title="操作">
-        <Space Size=@("middle")>
+        <Space Size="SpaceSize.Middle">
+            @if (BsConfig.UserAuthFragment != null)
+            {
+                <SpaceItem>
+                    <a @onclick="async e=>await SetUserAuth(context)">权限</a>
+                </SpaceItem>
+            }
             <SpaceItem>
                 <a @onclick="async e=>await OnEdit(context)">编辑</a>
             </SpaceItem>
@@ -28,7 +36,14 @@
         <Row>
             <AntDesign.Col Span="24">
                 <Text>用户名</Text>
-                <Input Placeholder="请输入用户名" TValue="string" @bind-Value="@editUser.UserName"/>
+                <Input Placeholder="请输入用户名" TValue="string" @bind-Value="@editUser.UserName" />
+            </AntDesign.Col>
+        </Row>
+        <br />
+        <Row>
+            <AntDesign.Col Span="24">
+                <Text>姓  名</Text>
+                <Input Placeholder="请输入姓名" TValue="string" @bind-Value="@editUser.FullName" />
             </AntDesign.Col>
         </Row>
         <br />
@@ -41,11 +56,21 @@
         <br />
         <Row>
             <AntDesign.Col Span="24">
-                <Text>用户组</Text><br />
+                <Text>角  色</Text><br />
                 <RadioGroup @bind-Value="@editUser.Role" TValue="string">
-                    <Radio Value=@("admin")>管理员</Radio>
-                    <Radio Value=@("worker")>操作员</Radio>
+                    @foreach (var role in BsConfig.Roles)
+                    {
+                        <Radio Value="@role">@role</Radio>
+                    }
                 </RadioGroup>
+            </AntDesign.Col>
+        </Row>
+        <br />
+        <Row>
+            <AntDesign.Col Span="24">
+                <Text>过期时间</Text><br />
+                <DatePicker @bind-Value="@editUser.EndTime" TValue="DateTime" Format="yyyy/MM/dd">
+                </DatePicker>
             </AntDesign.Col>
         </Row>
         <br />
@@ -64,3 +89,8 @@
         </Row>
     </AntDesign.Template>
 </Drawer>
+
+@if (_userFragment != null)
+{
+    @_userFragment
+}

@@ -9,6 +9,7 @@
         align-items: center;
     }
 </style>
+
 <Layout Style="min-height: 100vh">
     <Sider Collapsible="true" @bind-Collapsed="collapsed" Width="200" Theme="SiderTheme.Light">
         <div style="height: 54px; display: flex; align-items: center; justify-content: center;">
@@ -53,6 +54,8 @@
         <Content style="margin: 10px; background: #fff; padding: 0px; min-height: 280px">
             @Body
         </Content>
+
+        <BlaScaf.Components.Shared.ChangePassword IsForceChange=true Tips="密码已过期，请修改密码" @bind-Visible="@changepwdVisible" />
     </Layout>
 </Layout>
 <script>

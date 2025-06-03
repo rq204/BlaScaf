@@ -1,5 +1,7 @@
 using BlaScaf;
+using BlaScaf.Components.Pages;
 using BlaScaf.Components.Shared;
+using DemoApp.Shared;
 using Microsoft.AspNetCore.Components;
 using System.Collections.Generic;
 
@@ -15,8 +17,8 @@ namespace DemoApp
 
             BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "管理员" }, RouterLink = "/", Title = "首页" });
             BsConfig.MenuItems.Add(new BsMenuItem() { Key = "users", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/users", Title = "用户管理" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/optlogs", Title = "操作日志" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/syslogs", Title = "系统日志" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "edit", Roles = new List<string>() { "管理员" }, RouterLink = "/optlogs", Title = "操作日志" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "highlight", Roles = new List<string>() { "管理员" }, RouterLink = "/syslogs", Title = "系统日志" });
 
             RenderFragment fragment = builder =>
             {
@@ -26,7 +28,16 @@ namespace DemoApp
                 builder.CloseComponent();
             };
             BsConfig.HeaderFragments.Add(fragment);
+            BsConfig.UserAuthFragment = (BsUser user) => builder =>
+            {
+                builder.OpenComponent(0, typeof(UserFragment));
+                builder.AddAttribute(1, "User", user); // 给组件传参
+                builder.AddAttribute(2, "Visible", true);
+                builder.CloseComponent();
+            };
 
+            ///设置权限
+            BsConfig.Roles = new List<string>() { "管理员", "操作员" };
             //添加示例帐号
             BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-130), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
 

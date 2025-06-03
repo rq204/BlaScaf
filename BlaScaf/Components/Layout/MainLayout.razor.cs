@@ -27,6 +27,8 @@ namespace BlaScaf.Components.Layout
             NavigationManager.LocationChanged += OnLocationChanged;
             UpdatePageTitle(NavigationManager.Uri);
             this.fragments = BsConfig.HeaderFragments.ToArray().ToList();
+            // 每 30 秒检查一次
+            _timer = new Timer(async _ => await CheckSession(), null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
         }
 
         private void OnLocationChanged(object sender, LocationChangedEventArgs e)
@@ -65,7 +67,46 @@ namespace BlaScaf.Components.Layout
         public async ValueTask DisposeAsync()
         {
             objRef?.Dispose();
+            _timer?.Dispose();
         }
 
+        Timer _timer;
+        private bool changepwdVisible = false;
+        private bool onlyfirstchange = true;
+        private async Task CheckSession()
+        {
+            await this.UserService.LoadUserInfoAsync();
+            if (this.UserService.UserId == 0)
+            {
+                ///todo 问题没找到
+                try
+                {
+                    NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
+                }
+                catch { }
+            }
+            else if (onlyfirstchange)
+            {
+                onlyfirstchange = false;
+                BsUser bu = BsConfig.Users.Find(f => f.UserId == this.UserService.UserId);
+                if (bu != null && bu.LastChangePwd < DateTime.Now)
+                {
+                    changepwdVisible = true;
+                }
+            }
+            else
+            {
+                BsUser bu = BsConfig.Users.Find(f => f.UserId == this.UserService.UserId);
+                if (bu != null && bu.EndTime < DateTime.Now)
+                {
+                    ///todo 问题没找到
+                    try
+                    {
+                        NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
+                    }
+                    catch { }
+                }
+            }
+        }
     }
 }

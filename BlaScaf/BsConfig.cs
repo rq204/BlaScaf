@@ -57,7 +57,9 @@ namespace BlaScaf
         public static Action<BsSysLog> AddSysLog;
 
         /// <summary>
-        /// 添加或更新用户信息,可以做一些检查，比如密码强度不够可以抛异常出去
+        /// 添加或更新用户信息,可以做一些检查
+        /// 比如密码强度不够可以抛异常出去
+        /// 在这个方法中要注意更新BsConfig.Users
         /// </summary>
         public static Action<BsUser> AddOrUpdateUser;
 
@@ -75,5 +77,10 @@ namespace BlaScaf
         /// 验证码组件
         /// </summary>
         public static Func<RenderFragment> CaptchaFragment = null;
+
+        /// <summary>
+        /// 用户相关权限
+        /// </summary>
+        public static Func<BsUser, RenderFragment> UserAuthFragment = null;
     }
 }

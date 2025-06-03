@@ -15,11 +15,11 @@ namespace BlaScaf.Components.Pages
 {
     public partial class Users
     {
+        [Inject] public MessageService MessageService { get; set; }
+
         ITable table;
 
         private bool isloading = false;
-
-        [Inject] public AuthenticationStateProvider AuthProvider { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -30,7 +30,6 @@ namespace BlaScaf.Components.Pages
         private int pageIndex = 0;
         private int pageSize = 15;
         private QueryRsp<List<BsUser>> userrsp = new QueryRsp<List<BsUser>>();
-
 
         private async void PageIndexChange(int pageIndex)
         {
@@ -47,7 +46,7 @@ namespace BlaScaf.Components.Pages
             string err = editUser.Validate();
             if (err != null)
             {
-                msg.Error(err, 3);
+                await MessageService.ErrorAsync(err, 3);
             }
             else
             {
@@ -60,7 +59,7 @@ namespace BlaScaf.Components.Pages
                 }
                 catch (Exception ex)
                 {
-                    msg.Error(ex.Message, 3);
+                    await MessageService.ErrorAsync(ex.Message, 3);
                 }
             }
         }
@@ -89,17 +88,29 @@ namespace BlaScaf.Components.Pages
 
         void NewDrawer()
         {
-            editUser = new BsUser() { Enable = true };
+            editUser = new BsUser() { Enable = true, EndTime = DateTime.Now.AddYears(100), LastLogin = DateTime.MinValue };
             this.drawerVisible = true;
             this.editTitle = "添加用户";
         }
 
         internal async Task OnEdit(BsUser user)
         {
+            _userFragment = null;
             var json = JsonSerializer.Serialize(user);
             this.editUser = JsonSerializer.Deserialize<BsUser>(json);
+            this.editUser.Password = "";
             this.drawerVisible = true;
             this.editTitle = "编辑用户";
+            await base.InvokeAsync(base.StateHasChanged);
+        }
+
+        private RenderFragment _userFragment = null;
+
+        internal async Task SetUserAuth(BsUser user)
+        {
+            var json = JsonSerializer.Serialize(user);
+            BsUser bu = JsonSerializer.Deserialize<BsUser>(json);
+            _userFragment = BsConfig.UserAuthFragment(bu);
             await base.InvokeAsync(base.StateHasChanged);
         }
     }

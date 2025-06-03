@@ -73,7 +73,7 @@ namespace BlaScaf
         public string Token { get; set; }
 
         /// <summary>
-        /// 最后修改时间
+        /// 最后登录时间
         /// </summary>
         public DateTime LastLogin { get; set; }
 
