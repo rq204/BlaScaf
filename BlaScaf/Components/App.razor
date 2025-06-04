@@ -34,6 +34,12 @@
                 return !!document.fullscreenElement;
             }
         };
+        window.downloadFromBase64 = (base64, mimeType, fileName) => {
+               const link = document.createElement("a");
+               link.href = `data:${mimeType};base64,${base64}`;
+               link.download = fileName;
+               link.click();
+           };
     </script>
     <HeadOutlet />
 </head>

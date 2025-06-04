@@ -36,6 +36,8 @@ namespace DemoApp
                 builder.CloseComponent();
             };
 
+            BsConfig.HeadInjectRawHtmls.Add("<script src='test.js'></script>");
+
             ///设置权限
             BsConfig.Roles = new List<string>() { "管理员", "操作员" };
             //添加示例帐号

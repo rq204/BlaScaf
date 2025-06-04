@@ -3,12 +3,12 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 
-<style>
-    .my-space .ant-space-item {
-        display: flex;
-        align-items: center;
+<HeadContent>
+    @foreach (var rawHtml in BsConfig.HeadInjectRawHtmls)
+    {
+        @((MarkupString)rawHtml)
     }
-</style>
+</HeadContent>
 
 <Layout Style="min-height: 100vh">
     <Sider Collapsible="true" @bind-Collapsed="collapsed" Width="200" Theme="SiderTheme.Light">
@@ -35,17 +35,17 @@
                     <Text>@NavTitle</Text>
                 </SpaceItem>
             </Space>
-            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle" Style="height: 100%; display: flex; align-items: center;" Class="my-space">
+            <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle" Style="height: 100%; display: flex; align-items: center;">
                 @foreach (var fragment in BsConfig.HeaderFragments)
                 {
-                    <SpaceItem>
+                    <SpaceItem Style="display: flex; align-items: center;">
                         @fragment
                     </SpaceItem>
                 }
-                <SpaceItem>
+                <SpaceItem Style="display: flex; align-items: center;">
                     <BlaScaf.Components.Shared.FullScreenToggle />
                 </SpaceItem>
-                <SpaceItem>
+                <SpaceItem Style="display: flex; align-items: center;">
                     <BlaScaf.Components.Shared.UserProfileMenu />
                 </SpaceItem>
             </Space>

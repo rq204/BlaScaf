@@ -47,6 +47,11 @@ namespace BlaScaf
         public static List<RenderFragment> HeaderFragments = new List<RenderFragment>();
 
         /// <summary>
+        /// 插入html的head中代码
+        /// </summary>
+        public static List<string> HeadInjectRawHtmls = new List<string>();
+
+        /// <summary>
         /// 添加操作日志
         /// </summary>
         public static Action<BsOptLog> AddOptLog;
@@ -82,5 +87,8 @@ namespace BlaScaf
         /// 用户相关权限
         /// </summary>
         public static Func<BsUser, RenderFragment> UserAuthFragment = null;
+
+
+
     }
 }
