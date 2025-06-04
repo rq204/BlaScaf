@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -20,6 +22,9 @@ namespace BlaScaf
             BsUser bu = BsConfig.Users.Find(f => f.UserName == dto.UserName);
             if (bu != null)
             {
+                string ip = Utility.GetRealClientIP(HttpContext);
+                string useragent = HttpContext.Request.Headers["User-Agent"].ToString();
+
                 if (BsSecurity.UserHashKey.ContainsKey(dto.UserName))
                 {
                     string key = BsSecurity.UserHashKey[dto.UserName];
@@ -60,6 +65,7 @@ namespace BlaScaf
                             BsUser user = JsonSerializer.Deserialize<BsUser>(json);
                             user.Token = Guid.NewGuid().ToString();
                             user.LastLogin = DateTime.Now;
+                            user.LastIP = ip;
                             BsConfig.AddOrUpdateUser(user);
 
                             var claims = new List<Claim>
@@ -69,6 +75,8 @@ namespace BlaScaf
                 new Claim("UserId",user.UserId.ToString()),
                 new Claim(ClaimTypes.Role, user.Role),
                 new Claim("Token",user.Token),
+                new Claim("IP",ip),
+                new Claim("UA",useragent)
             };
                             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                             var authProperties = new AuthenticationProperties
@@ -135,7 +143,12 @@ namespace BlaScaf
         {
             if (User?.Identity?.IsAuthenticated == true)
             {
-                return Ok(); // 会话有效
+                string useragent = HttpContext.Request.Headers["User-Agent"].ToString();
+                string ua = User.FindFirstValue("UA");
+                if (ua == useragent)
+                {
+                    return Ok(); // 会话有效
+                }
             }
 
             // 会话过期，清除认证 Cookie

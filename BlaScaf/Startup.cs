@@ -97,7 +97,6 @@ namespace BlaScaf
             // 映射控制器路由（如 Web API 或传统 MVC 控制器），这句必须有，否则控制器不会生效
             app.MapControllers();
 
-          
             // 映射 Razor 组件（Blazor）入口点，并启用 Blazor Server 的交互式渲染模式
             // 其中 App 是组件的根组件
             app.MapRazorComponents<App>()

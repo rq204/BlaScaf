@@ -36,7 +36,7 @@
                 </SpaceItem>
             </Space>
             <Space Align="SpaceAlign.Center" Size="SpaceSize.Middle" Style="height: 100%; display: flex; align-items: center;" Class="my-space">
-                @foreach (var fragment in this.fragments)
+                @foreach (var fragment in BsConfig.HeaderFragments)
                 {
                     <SpaceItem>
                         @fragment

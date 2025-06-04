@@ -73,20 +73,25 @@ namespace BlaScaf
         public string Token { get; set; }
 
         /// <summary>
+        /// 注册ip
+        /// </summary>
+        [FreeSql.DataAnnotations.Column(StringLength = 39)]
+        public string RegIP { get; set; }
+
+        /// <summary>
         /// 最后登录时间
         /// </summary>
         public DateTime LastLogin { get; set; } = DateTime.MinValue;
 
         /// <summary>
-        /// 注册ip
+        /// 最后编辑时间
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 15)]
-        public string RegIP { get; set; }
+        public DateTime LastEdit { get; set; } = DateTime.MinValue;
 
         /// <summary>
         /// 最后登录IP
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 15)]
+        [FreeSql.DataAnnotations.Column(StringLength = 39)]
         public string LastIP { get; set; }
 
         /// <summary>
@@ -95,22 +100,27 @@ namespace BlaScaf
         public DateTime EndTime { get; set; } = DateTime.Now.AddYears(100);
 
         /// <summary>
-        /// 历史项目保留，设计器Token，可自定义用途
+        /// 扩展字段1
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 100)]
-        public string SToken { get; set; }
+        [FreeSql.DataAnnotations.Column(StringLength = 200)]
+        public string ExtField1 { get; set; }
 
         /// <summary>
-        /// 历史项目保留，运行器token，可自定义用途
+        /// 扩展字段2
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 100)]
-        public string RToken { get; set; }
+        [FreeSql.DataAnnotations.Column(StringLength = 200)]
+        public string ExtField2 { get; set; }
 
         /// <summary>
-        /// 历史项目保留，用户等级，可自定义用途
+        /// 扩展字段3
         /// </summary>
-        [FreeSql.DataAnnotations.Column(StringLength = 100)]
-        public int Level { get; set; }
+        [FreeSql.DataAnnotations.Column(StringLength = 200)]
+        public string ExtField3 { get; set; }
+
+        /// <summary>
+        /// 扩展字段4
+        /// </summary>
+        public int ExtField4 { get; set; }
 
         /// <summary>
         /// 扩展数据用，使用Json保存数据

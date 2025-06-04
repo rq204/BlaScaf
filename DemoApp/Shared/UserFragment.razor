@@ -1,0 +1,16 @@
+﻿<Modal Title="用户权限设置"
+       @bind-Visible="@Visible">
+    <p>用户Id：@User.UserId</p>
+    <p>用户名：@User.UserName</p>
+    <p>角  色：@User.Role</p>
+</Modal>
+
+@code {
+    [Parameter] public BsUser User { get; set; }
+
+    [Parameter]
+    public bool Visible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+}

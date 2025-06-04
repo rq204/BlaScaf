@@ -26,10 +26,9 @@ namespace BlaScaf
         public int UserId { get; set; }
 
         /// <summary>
-        /// 姓名
+        /// 用户名
         /// </summary>
-        [FreeSql.DataAnnotations.Column(IsIgnore = true)]
-        public string FullName { get; set; }
+        public string UserName { get; set; }
 
         /// <summary>
         /// 操作时间

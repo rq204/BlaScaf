@@ -13,9 +13,9 @@
 
 <Table @ref="table" Loading="@isloading" TItem="@BsOptLog" DataSource="@this.logsrsp.Value" PageSizeChanged="@PageSizeChange" PageSize="@pageSize" Total="@this.logsrsp.Total" PageIndexChanged="@PageIndexChange" PageIndex="@pageIndex">
     <PropertyColumn Property="c=>c.OptLogId" Title="日志ID" />
-    <PropertyColumn Title="操作描述" Property="c=>c.Summary" />
     <PropertyColumn Title="操作员ID" Property="c=>c.UserId" />
-    <PropertyColumn Title="操作人员" Property="c=>c.FullName" />
+    <PropertyColumn Title="操作人员" Property="c=>c.UserName" />
+    <PropertyColumn Title="操作描述" Property="c=>c.Summary" />
     <PropertyColumn Title="对象Id" Property="c=>c.OptObjId" />
     <PropertyColumn Title="操作内容" Property="c=>c.OptData" Ellipsis="true" />
     <PropertyColumn Title="操作时间" Property="c=>c.OptTime" Format="yyyy-MM-dd HH:mm:ss" />

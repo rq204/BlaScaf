@@ -97,12 +97,6 @@ namespace DemoApp
 
             var app = builder.Build();
 
-            // ¥ÌŒÛ“≥√Ê≈‰÷√
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Error");
-            }
-
             app.UseBsService();
 
             app.Run();

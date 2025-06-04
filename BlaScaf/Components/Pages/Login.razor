@@ -84,7 +84,7 @@
 <div class="login-container">
     <div class="login-card">
         <div class="login-title">@BsConfig.AppName</div>
-        <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+        <div>
             <Input @bind-Value="loginModel.UserName" Placeholder="用户名" PrefixIcon="user" Required="true" />
             <div style="height: 16px;"></div>
             <Input @bind-Value="loginModel.Password" Placeholder="密码" PrefixIcon="lock" Type=" InputType.Password" Required="true" />
@@ -103,7 +103,7 @@
             }
 
             <div style="height: 24px;"></div>
-            <Button Type="ButtonType.Primary" HtmlType="submit" Loading="@isLoading">登录</Button>
-        </EditForm>
+            <Button Type="ButtonType.Primary" OnClick="@HandleLogin" Loading="@isLoading">登录</Button>
+        </div>
     </div>
 </div>

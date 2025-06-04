@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace BlaScaf
 {
@@ -149,6 +150,73 @@ namespace BlaScaf
                     prop.SetValue(target, sourceValue);
                 }
             }
+        }
+
+        /// <summary>
+        /// 检查字符串是否包含危险字符（不处理，只检查）
+        /// </summary>
+        public static bool ContainsDangerousChars(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return false;
+
+            return input.Contains("<") ||
+                   input.Contains(">") ||
+                   input.Contains("\"") ||
+                   input.Contains("'") ||
+                   input.ToLower().Contains("javascript:") ||
+                   input.ToLower().Contains("vbscript:");
+        }
+
+        /// <summary>
+        /// 得到客户端IP
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string GetRealClientIP(HttpContext context)
+        {
+            // 按优先级检查各种代理头
+            var headers = new[]
+            {
+        "X-Forwarded-For",     // 标准代理头
+        "X-Real-IP",          // Nginx 等设置
+        "X-Client-IP",        // Apache 等设置
+        "CF-Connecting-IP",    // Cloudflare
+        "X-Forwarded",
+        "Forwarded-For",
+        "Forwarded"
+    };
+
+            foreach (var header in headers)
+            {
+                var value = context.Request.Headers[header].FirstOrDefault();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    // X-Forwarded-For 可能包含多个 IP，取第一个
+                    var ip = value.Split(',')[0].Trim();
+
+                    // 清理 IPv4 映射的 IPv6 地址
+                    if (ip.StartsWith("::ffff:"))
+                    {
+                        ip = ip.Substring(7);
+                    }
+
+                    // 验证 IP 格式
+                    if (IPAddress.TryParse(ip, out var parsedIP))
+                    {
+                        return ip;
+                    }
+                }
+            }
+
+            // 回退到连接 IP
+            var remoteIp = context.Connection.RemoteIpAddress;
+            if (remoteIp?.IsIPv4MappedToIPv6 == true)
+            {
+                return remoteIp.MapToIPv4().ToString();
+            }
+
+            return remoteIp?.ToString() ?? "Unknown";
         }
     }
 }
