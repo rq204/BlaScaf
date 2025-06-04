@@ -12,7 +12,7 @@
     </Overlay>
     <ChildContent>
         <a class="ant-dropdown-link" style="display: flex; align-items: center; height: 32px;">
-            <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> @(string.IsNullOrEmpty(UserService.FullName) ? UserService.UserName : UserService.FullName)
+            <Icon Type="@IconType.Outline.User" style="font-size: 18px; margin-right: 4px;" /> @showName
         </a>
     </ChildContent>
 </Dropdown>

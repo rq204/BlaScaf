@@ -45,6 +45,7 @@ namespace BlaScaf
                     var userIdStr = user.FindFirst("UserId")?.Value;
                     UserId = int.TryParse(userIdStr, out var uid) ? uid : 0;
                     Token = token;
+                    FullName = user.FindFirst("FullName")?.Value;
                 }
             }
             else

@@ -18,18 +18,30 @@ namespace BlaScaf.Components.Layout
             collapsed = !collapsed;
         }
 
-        private string PageTitle = "首页";
+        private string NavTitle = "首页";
         List<RenderFragment> fragments = new List<RenderFragment>();
 
         protected override void OnInitialized()
         {
             objRef = DotNetObjectReference.Create(this);
-            NavigationManager.LocationChanged += OnLocationChanged;
-            UpdatePageTitle(NavigationManager.Uri);
             this.fragments = BsConfig.HeaderFragments.ToArray().ToList();
-            // 每 30 秒检查一次
-            _timer = new Timer(async _ => await CheckSession(), null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
         }
+
+        protected override async Task OnInitializedAsync()
+        {
+            objRef = DotNetObjectReference.Create(this);
+            this.fragments = BsConfig.HeaderFragments.ToArray().ToList();
+
+            // 首先加载用户信息
+            await CheckSession();
+
+            UpdatePageTitle(this.NavigationManager.Uri);
+
+            NavigationManager.LocationChanged += OnLocationChanged;
+            // 每 30 秒检查一次
+            _timer = new Timer(async _ => await CheckSession(), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        }
+
 
         private void OnLocationChanged(object sender, LocationChangedEventArgs e)
         {
@@ -39,9 +51,11 @@ namespace BlaScaf.Components.Layout
 
         private void UpdatePageTitle(string uri)
         {
-            var relativePath = NavigationManager.ToBaseRelativePath(uri).TrimEnd('/');
-            BsMenuItem bsMenu = BsConfig.MenuItems.Find(f => f.RouterLink.Trim('/') == relativePath);
-            PageTitle = bsMenu?.Title;
+            var ui = new Uri(NavigationManager.Uri);
+            //currentPath = uri.AbsolutePath; // 例如 "/users"
+            var relativePath = ui.AbsolutePath;// NavigationManager.ToBaseRelativePath(uri);
+            BsMenuItem bsMenu = BsConfig.MenuItems.Find(f => f.RouterLink == relativePath);
+            NavTitle = bsMenu?.Title;
 
             ///权限不足
             if (bsMenu == null || (this.UserService.Role != null && !bsMenu.Roles.Contains(this.UserService.Role)))
@@ -53,12 +67,15 @@ namespace BlaScaf.Components.Layout
         public void Dispose()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
+            objRef?.Dispose();
+            _timer?.Dispose();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
+                // 初始化 JavaScript 交互
                 await JSRuntime.InvokeVoidAsync("keepAlive", BsConfig.CookieTimeOutMinutes, objRef);
             }
         }
@@ -85,12 +102,7 @@ namespace BlaScaf.Components.Layout
             await this.UserService.LoadUserInfoAsync();
             if (this.UserService.UserId == 0)
             {
-                ///todo 问题没找到
-                try
-                {
-                    NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
-                }
-                catch { }
+                NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
             }
             else if (onlyfirstchange)
             {
@@ -106,12 +118,7 @@ namespace BlaScaf.Components.Layout
                 BsUser bu = BsConfig.Users.Find(f => f.UserId == this.UserService.UserId);
                 if (bu != null && bu.EndTime < DateTime.Now)
                 {
-                    ///todo 问题没找到
-                    try
-                    {
-                        NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
-                    }
-                    catch { }
+                    NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
                 }
             }
         }

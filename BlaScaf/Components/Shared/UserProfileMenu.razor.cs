@@ -27,8 +27,11 @@ namespace BlaScaf.Components.Shared
 
         protected override void OnInitialized()
         {
+            this.showName = string.IsNullOrEmpty(UserService.FullName) ? UserService.UserName : UserService.FullName;
             objRef = DotNetObjectReference.Create(this);
         }
+
+        private string showName = "";
 
         [JSInvokable]
         public async Task OnLogoutResult(bool success, string message)

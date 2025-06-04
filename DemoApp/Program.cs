@@ -39,7 +39,8 @@ namespace DemoApp
             ///设置权限
             BsConfig.Roles = new List<string>() { "管理员", "操作员" };
             //添加示例帐号
-            BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-1), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
+            BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", FullName = "张三", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-1), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
+            BsConfig.Users.Add(new BsUser() { UserId = 2, UserName = "test", FullName = "李四", Password = Utility.MD5("Test1234"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-1), Role = "操作员", LastLogin = DateTime.Now.AddDays(-1) });
 
             BsConfig.GetOptLogs = new Func<int, int, int, QueryRsp<List<BsOptLog>>>((a, b, c) =>
             {

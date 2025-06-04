@@ -64,6 +64,7 @@ namespace BlaScaf.Components.Pages
                     }
 
                     if (!string.IsNullOrEmpty(editUser.Password) && (editUser.Password.Length < 8 || !Utility.IsValidPassword(editUser.Password))) throw new Exception("密码至少要为8位且包含大小写和数字");
+                    if (!string.IsNullOrEmpty(editUser.Password) && editUser.Password.Length >= 32) throw new Exception("密码长度不能大于32位");
 
                     BsConfig.AddOrUpdateUser(this.editUser);
                     if (editUser.UserId == 0) this.pageIndex = 0;
