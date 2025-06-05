@@ -175,21 +175,11 @@ namespace BlaScaf
         /// <returns></returns>
         public static string GetRealClientIP(HttpContext context)
         {
-            // 按优先级检查各种代理头
-            var headers = new[]
+            var remoteIp = context.Connection.RemoteIpAddress;
+            ///如果是本地ip的话检查代理头
+            if (IsLocalOrPrivateIp(remoteIp))
             {
-        "X-Forwarded-For",     // 标准代理头
-        "X-Real-IP",          // Nginx 等设置
-        "X-Client-IP",        // Apache 等设置
-        "CF-Connecting-IP",    // Cloudflare
-        "X-Forwarded",
-        "Forwarded-For",
-        "Forwarded"
-    };
-
-            foreach (var header in headers)
-            {
-                var value = context.Request.Headers[header].FirstOrDefault();
+                var value = context.Request.Headers[BsSecurity.XForwardedFor].FirstOrDefault();
                 if (!string.IsNullOrEmpty(value))
                 {
                     // X-Forwarded-For 可能包含多个 IP，取第一个
@@ -208,15 +198,45 @@ namespace BlaScaf
                     }
                 }
             }
-
             // 回退到连接 IP
-            var remoteIp = context.Connection.RemoteIpAddress;
             if (remoteIp?.IsIPv4MappedToIPv6 == true)
             {
                 return remoteIp.MapToIPv4().ToString();
             }
 
             return remoteIp?.ToString() ?? "Unknown";
+        }
+
+        /// <summary>
+        /// 判断是否本地或是代理
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        private static bool IsLocalOrPrivateIp(IPAddress ip)
+        {
+            if (IPAddress.IsLoopback(ip))
+                return true;
+
+            // 转换成 IPv4（如果是 IPv6-mapped）
+            if (ip.IsIPv4MappedToIPv6)
+                ip = ip.MapToIPv4();
+
+            var bytes = ip.GetAddressBytes();
+
+            // 10.0.0.0/8
+            if (bytes[0] == 10)
+                return true;
+
+            // 172.16.0.0/12
+            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+                return true;
+
+            // 192.168.0.0/16
+            if (bytes[0] == 192 && bytes[1] == 168)
+                return true;
+
+            // Docker 默认 bridge 网络: 172.17.0.0/16 也包含在上面范围中
+            return false;
         }
     }
 }

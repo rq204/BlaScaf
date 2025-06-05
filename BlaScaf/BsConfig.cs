@@ -84,11 +84,8 @@ namespace BlaScaf
         public static Func<RenderFragment> CaptchaFragment = null;
 
         /// <summary>
-        /// 用户相关权限
+        /// 用户相关权限设置
         /// </summary>
-        public static Func<BsUser, RenderFragment> UserAuthFragment = null;
-
-
-
+        public static Func<BsUser, Func<Task>, RenderFragment> UserAuthFragment = null;
     }
 }

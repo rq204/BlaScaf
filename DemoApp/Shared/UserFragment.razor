@@ -1,8 +1,17 @@
 ﻿<Modal Title="用户权限设置"
-       @bind-Visible="@Visible">
+       @bind-Visible="@Visible"
+       OnOk="HandleOk"
+       OnCancel="HandleCancel"
+       OkText=@("确认")
+       CancelText=@("取消")
+       Width="600">
     <p>用户Id：@User.UserId</p>
     <p>用户名：@User.UserName</p>
     <p>角  色：@User.Role</p>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div style="color: red;">@errorMessage</div>
+    }
 </Modal>
 
 @code {
@@ -13,4 +22,28 @@
 
     [Parameter]
     public EventCallback<bool> VisibleChanged { get; set; }
+
+    private async Task HandleOk()
+    {
+        if (DateTime.Now.Second % 2 == 0)
+        {
+            // 成功后关闭弹窗
+            Visible = false;
+            await VisibleChanged.InvokeAsync(false);
+        }
+        else
+        {
+            this.errorMessage = "当前秒数是偶数，请等待奇数关闭！";
+            // 出错时不关闭弹窗
+            Visible = true;
+            await VisibleChanged.InvokeAsync(true);
+        }
+    }
+
+    private string errorMessage = "";
+    private async Task HandleCancel()
+    {
+        Visible = false;
+        await VisibleChanged.InvokeAsync(false);
+    }
 }

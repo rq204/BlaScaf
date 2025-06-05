@@ -131,6 +131,9 @@ namespace BlaScaf
         internal string Validate()
         {
             if (string.IsNullOrEmpty(this.UserName)) return "用户名不能为空";
+            if (this.UserName.Length < 3 || this.UserName.Length > 24) return "用户名长度应为3至24位";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(this.UserName, "^[A-Za-z0-9]+$")) return "用户名只能为大小写字母和数字";
+
             if (this.UserId == 0 && string.IsNullOrEmpty(this.Password)) return "密码不能为空";
             if (string.IsNullOrEmpty(this.Role)) return "角色不能为空";
             return null;

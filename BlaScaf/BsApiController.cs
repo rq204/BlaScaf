@@ -19,10 +19,21 @@ namespace BlaScaf
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] BsUser dto)
         {
+            string ip = Utility.GetRealClientIP(HttpContext);
+            if (BsSecurity.IPLoginError.TryGetValue(ip, out var timeList))
+            {
+                int waitMinutes = getWaitTime(timeList);
+                if (waitMinutes > 0) return Unauthorized($"密码多次错误，请{waitMinutes}分钟后再试");
+            }
+
+            if (!HttpContext.Request.Headers.ContainsKey("User-Agent"))
+            {
+                return Unauthorized("错误的请求客户端");
+            }
+
             BsUser bu = BsConfig.Users.Find(f => f.UserName == dto.UserName);
             if (bu != null)
             {
-                string ip = Utility.GetRealClientIP(HttpContext);
                 string useragent = HttpContext.Request.Headers["User-Agent"].ToString();
 
                 if (BsSecurity.UserHashKey.ContainsKey(dto.UserName))
@@ -32,17 +43,8 @@ namespace BlaScaf
 
                     if (BsSecurity.PasswordError.TryGetValue(dto.UserName, out var errorList))
                     {
-                        var thresholdTime = DateTime.Now.AddMinutes(-5);
-                        var recentErrors = errorList.Where(t => t > thresholdTime).ToList();
-
-                        if (recentErrors.Count >= 3)
-                        {
-                            var mostRecentErrorTime = recentErrors.Max();
-                            var waitMinutes = (int)Math.Ceiling((mostRecentErrorTime.AddMinutes(5) - DateTime.Now).TotalMinutes);
-                            waitMinutes = Math.Max(waitMinutes, 1); // 至少提示 1 分钟，避免显示 0
-
-                            return Unauthorized($"密码多次错误，请{waitMinutes}分钟后再试");
-                        }
+                        int waitMinutes = getWaitTime(errorList);
+                        if (waitMinutes > 0) return Unauthorized($"密码多次错误，请{waitMinutes}分钟后再试");
                     }
 
                     string md5pw = null;
@@ -58,7 +60,7 @@ namespace BlaScaf
                     if (md5pw == bu.Password)
                     {
                         BsSecurity.PasswordError.Remove(dto.UserName);
-
+                        
                         if (bu.EndTime > DateTime.Now)
                         {
                             var json = JsonSerializer.Serialize(bu);
@@ -105,6 +107,13 @@ namespace BlaScaf
                         }
                         list.Add(DateTime.Now);
 
+                        if(!BsSecurity.IPLoginError.TryGetValue(ip, out var login))
+                        {
+                            login = new List<DateTime>();
+                            BsSecurity.IPLoginError[ip] = login;
+                        }
+                        login.Add(DateTime.Now);
+
                         return Unauthorized("用户名或密码错误");
                     }
                 }
@@ -117,6 +126,26 @@ namespace BlaScaf
             {
                 return Unauthorized("用户名或密码错误");
             }
+        }
+
+        /// <summary>
+        /// 获取最少等待时间
+        /// </summary>
+        /// <param name="errorList"></param>
+        /// <returns></returns>
+        private int getWaitTime(List<DateTime> errorList)
+        {
+            var thresholdTime = DateTime.Now.AddMinutes(-5);
+            var recentErrors = errorList.Where(t => t > thresholdTime).ToList();
+
+            if (recentErrors.Count >= 3)
+            {
+                var mostRecentErrorTime = recentErrors.Max();
+                var waitMinutes = (int)Math.Ceiling((mostRecentErrorTime.AddMinutes(5) - DateTime.Now).TotalMinutes);
+                waitMinutes = Math.Max(waitMinutes, 1); // 至少提示 1 分钟，避免显示 0
+                return waitMinutes;
+            }
+            return 0;
         }
 
         /// <summary>

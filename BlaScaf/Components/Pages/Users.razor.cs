@@ -123,9 +123,17 @@ namespace BlaScaf.Components.Pages
 
         internal async Task SetUserAuth(BsUser user)
         {
+            _userFragment = null;
             var json = JsonSerializer.Serialize(user);
             BsUser bu = JsonSerializer.Deserialize<BsUser>(json);
-            _userFragment = BsConfig.UserAuthFragment(bu);
+            _userFragment = BsConfig.UserAuthFragment(bu, CloseUserAuth);
+            await base.InvokeAsync(base.StateHasChanged);
+        }
+
+        // 关闭权限窗口的方法
+        internal async Task CloseUserAuth()
+        {
+            _userFragment = null;
             await base.InvokeAsync(base.StateHasChanged);
         }
     }

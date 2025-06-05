@@ -28,11 +28,22 @@ namespace DemoApp
                 builder.CloseComponent();
             };
             BsConfig.HeaderFragments.Add(fragment);
-            BsConfig.UserAuthFragment = (BsUser user) => builder =>
+            BsConfig.UserAuthFragment = (BsUser user, Func<Task> onCloseCallback) => builder =>
             {
                 builder.OpenComponent(0, typeof(UserFragment));
                 builder.AddAttribute(1, "User", user); // 给组件传参
                 builder.AddAttribute(2, "Visible", true);
+                // 如果有关闭回调，添加VisibleChanged事件处理
+                if (onCloseCallback != null)
+                {
+                    builder.AddAttribute(3, "VisibleChanged", EventCallback.Factory.Create<bool>(new object(), async (visible) =>
+                    {
+                        if (!visible)
+                        {
+                            await onCloseCallback();
+                        }
+                    }));
+                }
                 builder.CloseComponent();
             };
 
@@ -71,7 +82,7 @@ namespace DemoApp
                 {
                     if (u.Role == "管理员" && u.Password.Length < 15) throw new Exception("管理员密码长度必须大于等于15位");
                     u.Password = Utility.MD5(u.Password);
-                    BsConfig.Users.Add(u);
+                    BsConfig.Users.Insert(0, u);
                     u.UserId = BsConfig.Users.Count;
                 }
                 else
