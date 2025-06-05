@@ -105,6 +105,14 @@ namespace DemoApp
             BsConfig.AddSysLog = new Action<BsSysLog>((x) => { });
             BsConfig.AddOptLog = new Action<BsOptLog>((x) => { });
 
+            ///验证码组件
+            BsConfig.CaptchaRoles = new List<string>() { "管理员" };
+            BsConfig.CaptchaFragment = () => builder =>
+            {
+                builder.OpenComponent<Shared.CaptchaFragment>(0);
+                builder.CloseComponent();
+            };
+
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddBsService();
 

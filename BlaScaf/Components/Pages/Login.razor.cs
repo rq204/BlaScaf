@@ -30,7 +30,8 @@ namespace BlaScaf.Components.Pages
 
             isLoading = true;
 
-            if (BsConfig.Users.Find(f => f.UserName == loginModel.UserName) == null)
+            BsUser bu = BsConfig.Users.Find(f => f.UserName == loginModel.UserName);
+            if (bu == null)
             {
                 if (!isDisposed) // 检查是否已销毁
                 {
@@ -39,15 +40,23 @@ namespace BlaScaf.Components.Pages
             }
             else
             {
-                BsUser dto = new BsUser() { UserName = loginModel.UserName, Token = loginModel.Token };
-                dto.Password = Utility.MD5(loginModel.Password);
-                string key = Guid.NewGuid().ToString("N");
-                dto.Password = Utility.DESEncrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
-                BsSecurity.UserHashKey[dto.UserName] = key;
-
-                if (!isDisposed) // 检查是否已销毁
+                ///如果部分人要验证码，点击时出验证码
+                if (BsConfig.CaptchaRoles.Contains(bu.Role) && BsConfig.CaptchaFragment != null && this.fragment == null)
                 {
-                    await JSRuntime.InvokeVoidAsync("bsLogin", dto.UserName, dto.Password, dto.Token, objRef);
+                    fragment = BsConfig.CaptchaFragment();
+                }
+                else
+                {
+                    BsUser dto = new BsUser() { UserName = loginModel.UserName, Token = loginModel.Token };
+                    dto.Password = Utility.MD5(loginModel.Password);
+                    string key = Guid.NewGuid().ToString("N");
+                    dto.Password = Utility.DESEncrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
+                    BsSecurity.UserHashKey[dto.UserName] = key;
+
+                    if (!isDisposed) // 检查是否已销毁
+                    {
+                        await JSRuntime.InvokeVoidAsync("bsLogin", dto.UserName, dto.Password, dto.Token, objRef);
+                    }
                 }
             }
 
@@ -60,7 +69,26 @@ namespace BlaScaf.Components.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            if (BsConfig.CaptchaFragment != null) fragment = BsConfig.CaptchaFragment();
+            ///如果所有人要验证码，就直接显示
+            if (BsConfig.CaptchaFragment != null && BsConfig.CaptchaRoles.Count > 0 && AreListsEqual(BsConfig.Roles, BsConfig.CaptchaRoles))
+            {
+                fragment = BsConfig.CaptchaFragment();
+            }
+        }
+
+        public static bool AreListsEqual(List<string> list1, List<string> list2)
+        {
+            if (list1 == null || list2 == null) return false;
+            if (list1.Count != list2.Count) return false;
+
+            var grouped1 = list1.GroupBy(x => x)
+                                .ToDictionary(g => g.Key, g => g.Count());
+
+            var grouped2 = list2.GroupBy(x => x)
+                                .ToDictionary(g => g.Key, g => g.Count());
+
+            return grouped1.Count == grouped2.Count &&
+                   grouped1.All(kvp => grouped2.TryGetValue(kvp.Key, out var count) && count == kvp.Value);
         }
 
         private DotNetObjectReference<Login> objRef;
@@ -106,5 +134,7 @@ namespace BlaScaf.Components.Pages
             isDisposed = true; // 设置销毁标志
             objRef?.Dispose();
         }
+
+        private bool showcaptha = false;
     }
 }

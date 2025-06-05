@@ -1,0 +1,21 @@
+﻿@inject IJSRuntime JSRuntime
+
+<Text>请输入验证码@(code)</Text>
+
+@code
+{
+    private string code { get; set; }
+
+    protected override void OnInitialized()
+    {
+        while (true)
+        {
+            code = new Random().Next(100000, 999999).ToString();
+            if (!BsSecurity.CaptchaCode.ContainsKey(code))
+            {
+                BsSecurity.CaptchaCode[code] = DateTime.Now;
+                break;
+            }
+        }
+    }
+}

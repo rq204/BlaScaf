@@ -24,5 +24,10 @@
         /// 标准代理请求头
         /// </summary>
         public static string XForwardedFor = "X-Forwarded-For";
+
+        /// <summary>
+        /// 验证码和生成时间
+        /// </summary>
+        public static Dictionary<string, DateTime> CaptchaCode = new Dictionary<string, DateTime>();
     }
 }

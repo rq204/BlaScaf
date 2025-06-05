@@ -41,10 +41,7 @@ namespace BlaScaf
         /// </summary>
         public static List<BsUser> Users = new List<BsUser>();
 
-        /// <summary>
-        /// 头部的外部的组件
-        /// </summary>
-        public static List<RenderFragment> HeaderFragments = new List<RenderFragment>();
+
 
         /// <summary>
         /// 插入html的head中代码
@@ -79,9 +76,19 @@ namespace BlaScaf
         public static Func<int, int, QueryRsp<List<BsSysLog>>> GetSysLogs;
 
         /// <summary>
+        /// 头部的外部的组件
+        /// </summary>
+        public static List<RenderFragment> HeaderFragments = new List<RenderFragment>();
+
+        /// <summary>
         /// 验证码组件
         /// </summary>
         public static Func<RenderFragment> CaptchaFragment = null;
+
+        /// <summary>
+        /// 哪些用户组使用验证码
+        /// </summary>
+        public static List<string> CaptchaRoles = new List<string>();
 
         /// <summary>
         /// 用户相关权限设置

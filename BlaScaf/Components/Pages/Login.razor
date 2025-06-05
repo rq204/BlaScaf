@@ -85,18 +85,27 @@
     <div class="login-card">
         <div class="login-title">@BsConfig.AppName</div>
         <div>
-            <Input @bind-Value="loginModel.UserName" Placeholder="用户名" PrefixIcon="user" Required="true" />
+            <Input @bind-Value="loginModel.UserName" Placeholder="用户名" Required="true">
+            <Prefix>
+                <Icon Type="@IconType.Outline.User" />
+            </Prefix>
+            </Input>
             <div style="height: 16px;"></div>
-            <Input @bind-Value="loginModel.Password" Placeholder="密码" PrefixIcon="lock" Type=" InputType.Password" Required="true" />
+            <Input @bind-Value="loginModel.Password" Placeholder="密码" PrefixIcon="lock" Type="InputType.Password" Required="true">
+            <Prefix>
+                <Icon Type="@IconType.Outline.Lock" />
+            </Prefix>
+            </Input>
             <div style="height: 16px;"></div>
 
             @if (this.fragment != null)
             {
                 <GridRow Gutter="8">
-                    <GridCol Span="16">
-                        <Input @bind-Value="loginModel.Token" Placeholder="验证码" Required="true" />
+                    <GridCol Span="12">
+                        <Input @bind-Value="loginModel.Token" Placeholder="验证码" Required="true">
+                        </Input>
                     </GridCol>
-                    <GridCol Span="8">
+                    <GridCol Span="12">
                         @fragment
                     </GridCol>
                 </GridRow>
