@@ -15,10 +15,10 @@ namespace DemoApp
             BsConfig.CookieTimeOutMinutes = 30;
             BsConfig.ChangePwdDays = 90;
 
-            BsConfig.MenuItems.Add(new BsMenuItem() { Id = 1, Icon = "home", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/", Title = "首页" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Id = 2, Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/users", Title = "用户管理" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Id = 3, Icon = "edit", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/optlogs", Title = "操作日志" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Id = 4, Icon = "highlight", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/syslogs", Title = "系统日志" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/", Title = "首页" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "users", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/users", Title = "用户管理" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "edit", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/optlogs", Title = "操作日志" });
+            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "highlight", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/syslogs", Title = "系统日志" });
 
             RenderFragment fragment = builder =>
             {
@@ -33,17 +33,20 @@ namespace DemoApp
                 builder.OpenComponent(0, typeof(UserFragment));
                 builder.AddAttribute(1, "User", user); // 给组件传参
                 builder.AddAttribute(2, "Visible", true);
-                builder.AddAttribute(3, "VisibleChanged", EventCallback.Factory.Create<bool>(new object(), async (visible) =>
+                // 如果有关闭回调，添加VisibleChanged事件处理
+                if (onCloseCallback != null)
+                {
+                    builder.AddAttribute(3, "VisibleChanged", EventCallback.Factory.Create<bool>(new object(), async (visible) =>
                     {
                         if (!visible)
                         {
                             await onCloseCallback();
                         }
                     }));
+                }
                 builder.CloseComponent();
             };
 
-            ///添加引用的js,css，或是直接相关代码都可以
             BsConfig.HeadInjectRawHtmls.Add("<script src='test.js'></script>");
 
             ///设置权限

@@ -1,69 +1,8 @@
-﻿@inject UserService UserService
-
-<Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
-    @cachedMenu
-</Menu>
-
-@code {
-    private List<BsMenuItem> allMenuItems;
-    private List<BsMenuItem> menuTree; // ParentId == 0 的顶级菜单项
-    private RenderFragment cachedMenu;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await UserService.LoadUserInfoAsync();
-
-        // 仅保留当前角色权限的菜单，并按 Id 升序
-        allMenuItems = BsConfig.MenuItems
-            .Where(m => m.Roles.Contains(UserService.Role))
-            .OrderBy(m => m.Id)
-            .ToList();
-
-        menuTree = allMenuItems.Where(m => m.ParentId == 0).ToList();
-
-        // 构建一次缓存的菜单 RenderFragment
-        cachedMenu = BuildMenuRenderFragment();
+﻿<Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
+    @{
+        foreach (BsMenuItem bsMenuItem in BsConfig.MenuItems)
+        {
+            <MenuItem Key="@bsMenuItem.Key" Icon="@bsMenuItem.Icon" RouterLink="@bsMenuItem.RouterLink" Title="@bsMenuItem.Title">首页</MenuItem>
+        }
     }
-
-    private RenderFragment BuildMenuRenderFragment() => builder =>
-    {
-        int seq = 0;
-        foreach (var item in menuTree)
-        {
-            builder.AddContent(seq++, RenderMenuItem(item));
-        }
-    };
-
-    RenderFragment RenderMenuItem(BsMenuItem item) => builder =>
-    {
-        int seq = 0;
-        var children = allMenuItems.Where(m => m.ParentId == item.Id).ToList();
-        if (children.Any())
-        {
-            builder.OpenComponent<SubMenu>(seq++);
-            builder.AddAttribute(seq++, "Key", item.Id.ToString());
-            builder.AddAttribute(seq++, "Title", item.Title);
-            builder.AddAttribute(seq++, "Icon", item.Icon);
-            builder.AddAttribute(seq++, "ChildContent", (RenderFragment)(childBuilder =>
-            {
-                foreach (var child in children)
-                {
-                    childBuilder.AddContent(0, RenderMenuItem(child));
-                }
-            }));
-            builder.CloseComponent();
-        }
-        else
-        {
-            builder.OpenComponent<MenuItem>(seq++);
-            builder.AddAttribute(seq++, "Key", item.Id.ToString());
-            builder.AddAttribute(seq++, "RouterLink", item.RouterLink);
-            builder.AddAttribute(seq++, "Icon", item.Icon);
-            builder.AddAttribute(seq++, "ChildContent", (RenderFragment)(childBuilder =>
-            {
-                childBuilder.AddContent(0, item.Title);
-            }));
-            builder.CloseComponent();
-        }
-    };
-}
+</Menu>

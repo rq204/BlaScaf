@@ -13,12 +13,7 @@
         /// <summary>
         /// key
         /// </summary>
-        public int Id { get; set; }
-
-        /// <summary>
-        /// 上级Id
-        /// </summary>
-        public int ParentId { get; set; }
+        public string Key { get; set; }
 
         /// <summary>
         /// antdesign图标
