@@ -45,6 +45,10 @@ namespace BlaScaf.Components.Pages
                 {
                     fragment = BsConfig.CaptchaFragment();
                 }
+                else if (BsConfig.CaptchaRoles.Contains(bu.Role) && BsConfig.CaptchaFragment != null && this.fragment != null && string.IsNullOrEmpty(loginModel.Token))
+                {
+                    await this.MessageService.ErrorAsync("验证码不能为空", 3);
+                }
                 else
                 {
                     BsUser dto = new BsUser() { UserName = loginModel.UserName, Token = loginModel.Token };

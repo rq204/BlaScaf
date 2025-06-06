@@ -16,7 +16,7 @@
         public static Dictionary<string, List<DateTime>> PasswordError = new Dictionary<string, List<DateTime>>();
 
         /// <summary>
-        /// 同一IP下的登录错误5分钟可以错3次
+        /// 同一IP下的登录错误10分钟可以错10次
         /// </summary>
         public static Dictionary<string, List<DateTime>> IPLoginError = new Dictionary<string, List<DateTime>>();
 
@@ -26,7 +26,7 @@
         public static string XForwardedFor = "X-Forwarded-For";
 
         /// <summary>
-        /// 验证码和生成时间
+        /// 验证码和生成时间90秒超时
         /// </summary>
         public static Dictionary<string, DateTime> CaptchaCode = new Dictionary<string, DateTime>();
     }

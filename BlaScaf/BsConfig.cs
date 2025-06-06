@@ -41,8 +41,6 @@ namespace BlaScaf
         /// </summary>
         public static List<BsUser> Users = new List<BsUser>();
 
-
-
         /// <summary>
         /// 插入html的head中代码
         /// </summary>
