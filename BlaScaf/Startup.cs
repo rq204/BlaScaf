@@ -45,8 +45,10 @@ namespace BlaScaf
                     // 设置 SameSite 策略，限制跨站点请求时是否发送 Cookie
                     options.Cookie.SameSite = SameSiteMode.Strict;
 
+                    // 最长 24 天（防止前端 keep-alive 机制或 setInterval 超出浏览器/JS 最大间隔）
+                    int timemin = BsConfig.CookieTimeOutMinutes > 34560 ? 34560 : BsConfig.CookieTimeOutMinutes;
                     // 设置 Cookie 的有效时间（如果是持久 Cookie，写入到硬盘）
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(BsConfig.CookieTimeOutMinutes);
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(timemin);
 
                     // 设置为滑动过期：
                     // 如果用户在 30 分钟内有活动，将重新设置 Cookie 有效期，从而延长会话

@@ -66,8 +66,11 @@ namespace BlaScaf.Components.Layout
         {
             if (firstRender)
             {
+                // 不能超过js的最长时间24天
+                int timemin = BsConfig.CookieTimeOutMinutes > 34560 ? 34560 : BsConfig.CookieTimeOutMinutes;
+
                 // 初始化 JavaScript 交互
-                await JSRuntime.InvokeVoidAsync("keepAlive", BsConfig.CookieTimeOutMinutes, objRef);
+                await JSRuntime.InvokeVoidAsync("keepAlive", timemin, objRef);
             }
         }
 
