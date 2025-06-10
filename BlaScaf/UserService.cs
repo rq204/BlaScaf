@@ -9,16 +9,19 @@ namespace BlaScaf
     public class UserService
     {
         private readonly AuthenticationStateProvider _authProvider;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public int UserId { get; private set; }
         public string UserName { get; private set; }
         public string Role { get; private set; }
         public string FullName { get; private set; }
         public string Token { get; private set; }
+        public string IP { get; private set; }
 
-        public UserService(AuthenticationStateProvider authProvider)
+        public UserService(AuthenticationStateProvider authProvider, IHttpContextAccessor httpContextAccessor)
         {
             _authProvider = authProvider;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task LoadUserInfoAsync()
@@ -31,6 +34,9 @@ namespace BlaScaf
             FullName = null;
             Role = null;
             Token = null;
+
+            //获取客户端IP
+            IP = Utility.GetRealClientIP(_httpContextAccessor.HttpContext);
 
             if (user.Identity?.IsAuthenticated == true)
             {

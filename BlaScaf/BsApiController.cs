@@ -115,6 +115,9 @@ namespace BlaScaf
                                 new ClaimsPrincipal(claimsIdentity),
                                 authProperties
                             );
+
+                            BsConfig.AddSysLog(new BsSysLog() { LogType = "登录成功", Message = $"{bu.UserName}在{DateTime.Now}在{ip}登录系统成功" });
+
                             return Ok();
                         }
                         else
@@ -137,6 +140,8 @@ namespace BlaScaf
                             BsSecurity.IPLoginError[ip] = login;
                         }
                         login.Add(DateTime.Now);
+
+                        BsConfig.AddSysLog(new BsSysLog() { LogType = "登录失败", Message = $"{bu.UserName}在{DateTime.Now}在{ip}登录系统失败" });
 
                         return Unauthorized("用户名或密码错误");
                     }

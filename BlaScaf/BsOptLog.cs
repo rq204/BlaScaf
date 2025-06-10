@@ -36,10 +36,10 @@ namespace BlaScaf
         public DateTime OptTime { get; set; } = DateTime.Now;
 
         /// <summary>
-        /// 操作类型
+        /// 操作类型，更改密码，添加用户，编辑用户
         /// </summary>
-        [FreeSql.DataAnnotations.Column(MapType = typeof(int))]
-        public int OptType { get; set; }
+        [FreeSql.DataAnnotations.Column(StringLength = 6)]
+        public string OptType { get; set; }
 
         /// <summary>
         /// 操作的对像的Id

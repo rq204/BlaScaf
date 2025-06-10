@@ -73,6 +73,8 @@ namespace BlaScaf
             // 启用级联身份验证状态，使 Blazor 组件树可以通过 [CascadingParameter] 注入 AuthenticationState
             // 这样组件中可以使用 <AuthorizeView>、[AuthorizeView]、[CascadingAuthenticationState] 等功能
             services.AddCascadingAuthenticationState();
+
+            services.AddHttpContextAccessor();
         }
 
         /// <summary>
