@@ -92,5 +92,13 @@ namespace BlaScaf
         /// 用户相关权限设置
         /// </summary>
         public static Func<BsUser, Func<Task>, RenderFragment> UserAuthFragment = null;
+
+        /// <summary>
+        /// 不需要登录的页面
+        /// </summary>
+        public static HashSet<Type> AnonymousPages = new HashSet<Type>()
+        {
+           typeof(BlaScaf.Components.Pages.Login)
+        };
     }
 }

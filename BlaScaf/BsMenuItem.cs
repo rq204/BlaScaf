@@ -29,5 +29,10 @@
         /// 角色，属于的才显示
         /// </summary>
         public List<string> Roles { get; set; }
+
+        /// <summary>
+        /// 子菜单项
+        /// </summary>
+        public List<BsMenuItem> Children { get; set; } = new List<BsMenuItem>();
     }
 }
