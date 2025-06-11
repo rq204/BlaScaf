@@ -60,7 +60,7 @@ namespace DemoApp
                 QueryRsp<List<BsOptLog>> datas = new QueryRsp<List<BsOptLog>>() { Value = new List<BsOptLog>() };
                 for (int i = 0; i < 100; i++)
                 {
-                    datas.Value.Add(new BsOptLog() { OptLogId = i, OptTime = DateTime.Now.AddMinutes(0 - i), Summary = "示例操作" });
+                    datas.Value.Add(new BsOptLog() { OptLogId = i+1, OptTime = DateTime.Now.AddMinutes(0 - i), Summary = "示例操作" });
                 }
                 datas.Total = datas.Value.Count;
                 return datas;
@@ -70,7 +70,7 @@ namespace DemoApp
                 QueryRsp<List<BsSysLog>> datas = new QueryRsp<List<BsSysLog>>() { Value = new List<BsSysLog>() };
                 for (int i = 0; i < 100; i++)
                 {
-                    datas.Value.Add(new BsSysLog() { SysLogId = i, SysTime = DateTime.Now.AddMinutes(0 - i) });
+                    datas.Value.Add(new BsSysLog() { SysLogId = i + 1, SysTime = DateTime.Now.AddMinutes(0 - i), LogType = "登录成功", Message = $"帐号{i}在XX点XX分登录成功" });
                 }
                 datas.Total = datas.Value.Count;
                 return datas;
