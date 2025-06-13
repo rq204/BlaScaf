@@ -123,6 +123,11 @@ namespace BlaScaf
         public int ExtField4 { get; set; }
 
         /// <summary>
+        /// 扩展字段5
+        /// </summary>
+        public bool ExtField5 { get; set; }
+
+        /// <summary>
         /// 扩展数据用，使用Json保存数据
         /// </summary>
         [FreeSql.DataAnnotations.Column(StringLength = -2)]

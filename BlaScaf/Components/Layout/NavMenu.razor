@@ -1,8 +1,21 @@
-﻿<Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
+﻿@inject UserService UserService
+
+<Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
     @{
         foreach (BsMenuItem bsMenuItem in BsConfig.MenuItems)
         {
-            <MenuItem Key="@bsMenuItem.Key" Icon="@bsMenuItem.Icon" RouterLink="@bsMenuItem.RouterLink" Title="@bsMenuItem.Title">首页</MenuItem>
+            if (bsMenuItem.Roles.Contains(UserService.Role))
+            {
+                <MenuItem Key="@bsMenuItem.Key" Icon="@bsMenuItem.Icon" RouterLink="@bsMenuItem.RouterLink" Title="@bsMenuItem.Title">@bsMenuItem.Title</MenuItem>
+            }
         }
     }
 </Menu>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UserService.LoadUserInfoAsync();
+    }
+}

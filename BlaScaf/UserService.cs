@@ -36,7 +36,7 @@ namespace BlaScaf
             Token = null;
 
             //获取客户端IP
-            IP = Utility.GetRealClientIP(_httpContextAccessor.HttpContext);
+            if (_httpContextAccessor != null && _httpContextAccessor.HttpContext != null) IP = Utility.GetRealClientIP(_httpContextAccessor.HttpContext);
 
             if (user.Identity?.IsAuthenticated == true)
             {
