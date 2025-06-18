@@ -113,6 +113,8 @@ namespace DemoApp
                 builder.CloseComponent();
             };
 
+            BlaScaf.Startup.CheckBsConfig();
+
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddBsService();
 

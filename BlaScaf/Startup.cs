@@ -1,6 +1,7 @@
 ﻿using AntDesign;
 using BlaScaf.Components;
 using BlaScaf.Components.Shared;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
@@ -29,37 +30,54 @@ namespace BlaScaf
             //添加api的支持
             services.AddControllers();
 
-            // 添加认证和授权
             services.AddAuthentication("Cookies")
-                .AddCookie("Cookies", options =>
+            .AddCookie("Cookies", options =>
+            {
+                options.LoginPath = "/login";
+                // 设置为 HttpOnly，防止客户端 JavaScript 访问 Cookie（提升安全性）
+                options.Cookie.HttpOnly = true;
+                // 设置 Cookie 的安全策略：仅在 HTTPS 时才设置 Secure 标志（推荐 SameAsRequest）
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                // 设置 SameSite 策略，限制跨站点请求时是否发送 Cookie
+                options.Cookie.SameSite = SameSiteMode.Strict;
+
+                // 最长 24 天（防止前端 keep-alive 机制或 setInterval 超出浏览器/JS 最大间隔）
+                int timemin = BsConfig.CookieTimeOutMinutes > 34560 ? 34560 : BsConfig.CookieTimeOutMinutes;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(timemin); // 永远需要设这个值
+
+                // 设置为滑动过期：
+                options.SlidingExpiration = true;
+                ///该cookie是必需的
+                options.Cookie.IsEssential = true;
+
+                // 关键：控制是否持久化 Cookie
+                if (BsConfig.UseSessionCookie)
                 {
-                    // 指定未登录时自动重定向的路径
-                    options.LoginPath = "/login"; // 例如：访问需要登录的页面时自动跳转到此路径
-
-                    // 设置为 HttpOnly，防止客户端 JavaScript 访问 Cookie（提升安全性）
-                    options.Cookie.HttpOnly = true;
-
-                    // 设置 Cookie 的安全策略：仅在 HTTPS 时才设置 Secure 标志（推荐 SameAsRequest）
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-
-                    // 设置 SameSite 策略，限制跨站点请求时是否发送 Cookie
-                    options.Cookie.SameSite = SameSiteMode.Strict;
-
-                    // 最长 24 天（防止前端 keep-alive 机制或 setInterval 超出浏览器/JS 最大间隔）
-                    int timemin = BsConfig.CookieTimeOutMinutes > 34560 ? 34560 : BsConfig.CookieTimeOutMinutes;
-                    // 设置 Cookie 的有效时间（如果是持久 Cookie，写入到硬盘）
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(timemin);
-
-                    // 设置为滑动过期：
-                    // 如果用户在 30 分钟内有活动，将重新设置 Cookie 有效期，从而延长会话
-                    options.SlidingExpiration = true;
-
-                    if (BsConfig.UseSessionCookie) // 你自定义的配置开关
+                    // 不写入硬盘，关闭浏览器 Cookie 消失
+                    options.Events = new CookieAuthenticationEvents
                     {
-                        // 不设置 Cookie 的 Expiration，相当于浏览器关闭就清除 Cookie（Session Cookie）
-                        options.Cookie.Expiration = null; // 关键点：不设置具体过期时间，浏览器关闭即失效
-                    }
-                });
+                        OnSigningIn = context =>
+                        {
+                            context.Properties.IsPersistent = false; // 不持久化
+                            return Task.CompletedTask;
+                        }
+                    };
+                }
+                else
+                {
+                    // 写入硬盘，关闭浏览器后仍保留 Cookie
+                    options.Events = new CookieAuthenticationEvents
+                    {
+                        OnSigningIn = context =>
+                        {
+                            context.Properties.IsPersistent = true;
+                            context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(timemin);
+                            return Task.CompletedTask;
+                        }
+                    };
+                }
+            });
+
 
             // 添加授权服务，用于控制访问权限（配合 [Authorize] 特性使用）
             // 这是 ASP.NET Core 授权系统的核心服务注册
@@ -105,6 +123,25 @@ namespace BlaScaf
             // 其中 App 是组件的根组件
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode().AddAdditionalAssemblies(GetAdditionalAssemblies()!); // 启用 Blazor Server 模式（非 WebAssembly）
+        }
+
+        /// <summary>
+        /// 检测配置是否正确
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        public static void CheckBsConfig()
+        {
+            if (string.IsNullOrEmpty(BsConfig.AppName)) throw new Exception("AppName不能为空");
+            if (BsConfig.CookieTimeOutMinutes == 0) throw new Exception("CookieTimeOutMinutes不能为0");
+            if (BsConfig.MenuItems == null || BsConfig.MenuItems.Count == 0) throw new Exception("BsConfig.MenuItems 不能为空");
+            if (BsConfig.MenuItems.Find(f => !f.RouterLink.StartsWith("/")) != null) throw new Exception("所有路由请求必须以/开始");
+            if (BsConfig.Roles.Count == 0) throw new Exception("用户角色不能为空");
+            if (BsConfig.Users.Count == 0) throw new Exception("用户数不能为空");
+            if (BsConfig.AddOptLog == null) throw new Exception("AddOptLog不能为空");
+            if (BsConfig.AddSysLog == null) throw new Exception("AddSysLog不能为空");
+            if (BsConfig.AddOrUpdateUser == null) throw new Exception("AddOrUpdateUser不能为空");
+            if (BsConfig.GetOptLogs == null) throw new Exception("GetOptLogs不能为空");
+            if (BsConfig.GetSysLogs == null) throw new Exception("GetSysLogs不能为空");
         }
 
         /// <summary>

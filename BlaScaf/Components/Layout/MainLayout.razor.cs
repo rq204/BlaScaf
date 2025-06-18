@@ -113,7 +113,7 @@ namespace BlaScaf.Components.Layout
                     {
                         onlyfirstchange = false;
 
-                        if (bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
+                        if (BsConfig.ChangePwdDays > 0 && bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
                         {
                             changepwdVisible = true;
                         }

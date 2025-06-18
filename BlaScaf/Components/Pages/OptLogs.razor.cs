@@ -72,7 +72,7 @@ namespace BlaScaf.Components.Pages
         }
 
         private int optUserId = 0;
-        private int pageIndex = 0;
+        private int pageIndex = 1;
         private int pageSize = 15;
         private async Task PageIndexSizeChange()
         {
