@@ -33,6 +33,6 @@
         /// <summary>
         /// 发生时间
         /// </summary>
-        public DateTime SysTime { get; set; }
+        public DateTime SysTime { get; set; } = DateTime.Now;
     }
 }

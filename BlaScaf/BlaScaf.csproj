@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="AntDesign" Version="1.4.0" />
     <PackageReference Include="FreeSql" Version="3.5.206" />
+    <PackageReference Include="FreeSql.Repository" Version="3.5.206" />
   </ItemGroup>
 
 </Project>

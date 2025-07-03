@@ -126,6 +126,79 @@ namespace BlaScaf
         }
 
         /// <summary>
+        /// 初始化BsConfig中使用freesql的方法
+        /// 这个默认是要外部使用不同orm来实现的
+        /// 因为freesql用的多所以使用它来做示例
+        /// </summary>
+        /// <param name="fsql"></param>
+        public static void InitFreeSqlActionFunc(IFreeSql fsql)
+        {
+            BsConfig.GetOptLogs = new Func<int, int, int, BlaScaf.QueryRsp<List<BsOptLog>>>((pageIndex, pageSize, userId) =>
+            {
+                BlaScaf.QueryRsp<List<BsOptLog>> datas = new BlaScaf.QueryRsp<List<BsOptLog>>() { Value = new List<BsOptLog>() };
+                if (userId == 0)
+                {
+                    datas.Value = fsql.Select<BsOptLog>().Count(out var tatol).Page(pageIndex, pageSize).OrderByDescending(b => b.OptLogId).ToList();
+                    datas.Total = (int)tatol;
+                }
+                else
+                {
+                    datas.Value = fsql.Select<BsOptLog>().Where(w => w.UserId == userId).Count(out var tatol).Page(pageIndex, pageSize).OrderByDescending(b => b.OptLogId).ToList();
+                    datas.Total = (int)tatol;
+                }
+                return datas;
+            });
+            BsConfig.GetSysLogs = new Func<int, int, BlaScaf.QueryRsp<List<BsSysLog>>>((pageIndex, pageSize) =>
+            {
+                BlaScaf.QueryRsp<List<BsSysLog>> datas = new BlaScaf.QueryRsp<List<BsSysLog>>() { Value = new List<BsSysLog>() };
+                datas.Value = fsql.Select<BsSysLog>().Count(out var count).Page(pageIndex, pageSize).OrderByDescending(b => b.SysLogId).ToList();
+                datas.Total = (int)count;
+                return datas;
+            });
+
+            BsConfig.AddOrUpdateUser = new Action<BsUser>((u) =>
+            {
+                if (u.UserId == 0)
+                {
+                    u.Password = BlaScaf.Utility.MD5(u.Password);
+                    u.UserId = (int)fsql.Insert(u).ExecuteIdentity();
+                    BsConfig.Users.Insert(0, u);
+                }
+                else
+                {
+                    BsUser old = BsConfig.Users.Find(f => f.UserId == u.UserId);
+                    if (!string.IsNullOrEmpty(u.Password) && u.Password.Length != 32)
+                    {
+                        u.Password = BlaScaf.Utility.MD5(u.Password);
+                    }
+                    else
+                    {
+                        u.Password = old.Password;
+                    }
+
+                    var repo = fsql.GetRepository<BsUser>(); //可以从 IOC 容器中获取
+                    var item = repo.Where(a => a.UserId == u.UserId).First();  //此时快照 item
+                    BlaScaf.Utility.UpdateDifferentProperties<BsUser>(u, item);
+                    repo.Update(item); //对比快照时的变化
+
+                    BsUser cache = BsConfig.Users.Find(f => f.UserId == u.UserId);
+
+                    ///更新字段
+                    BlaScaf.Utility.UpdateDifferentProperties<BsUser>(u, cache);
+                }
+            });
+
+            BsConfig.AddSysLog = new Action<BsSysLog>((x) =>
+            {
+                fsql.Insert(x).ExecuteAffrows();
+            });
+            BsConfig.AddOptLog = new Action<BsOptLog>((x) =>
+            {
+                fsql.Insert(x).ExecuteAffrows();
+            });
+        }
+
+        /// <summary>
         /// 检测配置是否正确
         /// </summary>
         /// <exception cref="Exception"></exception>

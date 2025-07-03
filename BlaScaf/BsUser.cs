@@ -86,7 +86,7 @@ namespace BlaScaf
         /// <summary>
         /// 最后编辑时间
         /// </summary>
-        public DateTime LastEdit { get; set; } = DateTime.MinValue;
+        public DateTime LastEdit { get; set; } = DateTime.Now;
 
         /// <summary>
         /// 最后登录IP
