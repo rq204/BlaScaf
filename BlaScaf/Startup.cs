@@ -1,4 +1,5 @@
 ﻿using AntDesign;
+using AntDesign.Locales;
 using BlaScaf.Components;
 using BlaScaf.Components.Shared;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -20,6 +21,8 @@ namespace BlaScaf
 
             // 添加 AntDesign UI 框架
             services.AddAntDesign();
+            // 设置全局语言
+            AntDesign.LocaleProvider.SetLocale("zh-CN");
 
             // 添加 HttpContextAccessor
             services.AddHttpContextAccessor();
