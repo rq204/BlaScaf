@@ -118,15 +118,7 @@ namespace BlaScaf
 
                             BsConfig.AddSysLog(new BsSysLog() { LogType = "登录成功", Message = $"{bu.UserName}在{DateTime.Now}在{ip}登录系统成功" });
 
-                            if (BsConfig.BuildLoginResponse == null)
-                            {
-                                return Ok();
-                            }
-                            else
-                            {
-                                object obj = BsConfig.BuildLoginResponse(user);
-                                return Ok(obj);
-                            }
+                            return Ok();
                         }
                         else
                         {

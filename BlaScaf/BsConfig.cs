@@ -100,10 +100,5 @@ namespace BlaScaf
         {
            typeof(BlaScaf.Components.Pages.Login)
         };
-
-        /// <summary>
-        /// 登录成功后构建返回给前端的数据（如 token、用户信息、角色等）
-        /// </summary>
-        public static Func<BsUser, object> BuildLoginResponse;
     }
 }
