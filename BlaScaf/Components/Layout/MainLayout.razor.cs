@@ -104,7 +104,7 @@ namespace BlaScaf.Components.Layout
                 ///token不存在要T出去
                 if (bu == null || bu.Token != this.UserService.Token)
                 {
-                    NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
+                    NavigationManager.NavigateTo("/api/logout?kicked=true", forceLoad: true);
                 }
                 else
                 {
@@ -122,7 +122,7 @@ namespace BlaScaf.Components.Layout
                     {
                         if (bu.EndTime < DateTime.Now)//超过使用期限也T出去
                         {
-                            NavigationManager.NavigateTo("/bsapi/logout?kicked=true", forceLoad: true);
+                            NavigationManager.NavigateTo("/api/logout?kicked=true", forceLoad: true);
                         }
                     }
                 }

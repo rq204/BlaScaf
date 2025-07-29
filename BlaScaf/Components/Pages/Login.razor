@@ -54,7 +54,7 @@
          let message = "";
 
          try {
-             let response = await fetch('/bsapi/login', {
+             let response = await fetch('/api/login', {
                  method: 'POST',
                  credentials: 'include', // 关键：要能收到 Set-Cookie
                  headers: {

@@ -11,7 +11,10 @@
 <Table @ref="table" Loading="@isloading" TItem="BsUser" DataSource="@this.userrsp.Value" PageSize="15" Total="@this.userrsp.Total" PageIndexChanged="@PageIndexChange" PageIndex="@pageIndex">
     <PropertyColumn Property="c=>c.UserId" Title="用户ID" />
     <PropertyColumn Title="用户名" Property="c=>c.UserName" />
-    <PropertyColumn Title="姓名" Property="c=>c.FullName" />
+    @if (this.showFullName)
+    {
+        <PropertyColumn Title="姓名" Property="c=>c.FullName" />
+    }
     <PropertyColumn Title="角色" Property="c=>c.Role" />
     <PropertyColumn Title="添加时间" Property="c=>c.AddTime" Format="yyyy-MM-dd HH:mm:ss" />
     <PropertyColumn Title="最后登录" Property="c=>c.LastLogin" Format="yyyy-MM-dd HH:mm:ss" />

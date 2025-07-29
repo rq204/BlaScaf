@@ -29,6 +29,7 @@ namespace BlaScaf.Components.Pages
 
         private int pageIndex = 0;
         private int pageSize = 15;
+        private bool showFullName = false;
         private QueryRsp<List<BsUser>> userrsp = new QueryRsp<List<BsUser>>();
 
         private async void PageIndexChange(int pageIndex)
@@ -90,6 +91,9 @@ namespace BlaScaf.Components.Pages
                      .OrderByDescending(x => x.UserId)
                      .ToList();
             this.userrsp.Total = BsConfig.Users.Count;
+
+            this.showFullName = this.userrsp.Value.FindAll(f => !string.IsNullOrEmpty(f.FullName)).Count > 0;
+
             isloading = false;
 
             await base.InvokeAsync(base.StateHasChanged);

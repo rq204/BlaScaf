@@ -60,7 +60,7 @@
 </Layout>
 <script>
     window.keepAlive = (timeoutMinutes , dotNetObj) => {
-        const KEEPALIVE_URL = '/bsapi/keepalive';
+        const KEEPALIVE_URL = '/api/keepalive';
         const STORAGE_KEY = 'keepalive';
         const CHECK_INTERVAL = timeoutMinutes / 2 * 60 * 1000; // 检查时间为 超时时间一半多6秒
         const ACTIVITY_THRESHOLD = timeoutMinutes/ 2 * 60 * 1000; // 用户活跃时间阈值为 超时时间一半
