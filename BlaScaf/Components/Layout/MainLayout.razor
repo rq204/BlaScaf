@@ -66,10 +66,6 @@
         const ACTIVITY_THRESHOLD = timeoutMinutes/ 2 * 60 * 1000; // 用户活跃时间阈值为 超时时间一半
         const TIMEOUT_MS = timeoutMinutes * 60 * 1000;
 
-
-
-
-
         let lastActivity = Date.now();
         let lastRequest = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
 
@@ -104,7 +100,7 @@
 
                     if (response.status === 401) {
                         clearInterval(intervalId);
-                         if (dotNetObj && dotNetObj.invokeMethodAsync) {
+                         if (dotNetObj && dotNetObj._disposed !== true && dotNetObj.invokeMethodAsync) {
                                 await dotNetObj.invokeMethodAsync("OnTimeOut");
                             }
                         return;

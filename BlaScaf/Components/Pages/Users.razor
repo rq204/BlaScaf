@@ -1,7 +1,6 @@
 ﻿@page "/users"
 @attribute [Authorize]
 
-<PageTitle>用户管理</PageTitle>
 <PageHeader Title="@("用户管理")" Subtitle="@($"数量：{this.userrsp.Total}")">
     <PageHeaderExtra>
         <Button @onclick="_=>NewDrawer()">添加用户</Button>

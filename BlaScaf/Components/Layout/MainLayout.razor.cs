@@ -59,6 +59,7 @@ namespace BlaScaf.Components.Layout
 
         public void Dispose()
         {
+            objRef?.Dispose();
             NavigationManager.LocationChanged -= OnLocationChanged;
         }
 
@@ -71,6 +72,7 @@ namespace BlaScaf.Components.Layout
 
                 // 初始化 JavaScript 交互
                 await JSRuntime.InvokeVoidAsync("keepAlive", timemin, objRef);
+                await JSRuntime.InvokeVoidAsync("setTitle", BsConfig.AppName);
             }
         }
 
