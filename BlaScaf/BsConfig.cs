@@ -64,6 +64,11 @@ namespace BlaScaf
         public static Action<BsUser> AddOrUpdateUser;
 
         /// <summary>
+        /// 新增用户登录的处理已是验证过帐号密码
+        /// </summary>
+        public static Action<BsUser> AddLogin;
+
+        /// <summary>
         /// 获取操作日志,PageIndex,PageSize,UserId
         /// </summary>
         public static Func<int, int, int, QueryRsp<List<BsOptLog>>> GetOptLogs;

@@ -87,20 +87,18 @@ namespace BlaScaf
 
                         if (bu.EndTime > DateTime.Now)
                         {
-                            var json = JsonSerializer.Serialize(bu);
-                            BsUser user = JsonSerializer.Deserialize<BsUser>(json);
-                            user.Token = Guid.NewGuid().ToString();
-                            user.LastLogin = DateTime.Now;
-                            user.LastIP = ip;
-                            BsConfig.AddOrUpdateUser(user);
+                            bu.Token = Guid.NewGuid().ToString();
+                            bu.LastLogin = DateTime.Now;
+                            bu.LastIP = ip;
+                            BsConfig.AddLogin(bu);
 
                             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name,user.UserName),
-                new Claim("FullName",string.IsNullOrEmpty(user.FullName)?"":user.FullName),
-                new Claim("UserId",user.UserId.ToString()),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim("Token",user.Token),
+                new Claim(ClaimTypes.Name,bu.UserName),
+                new Claim("FullName",string.IsNullOrEmpty(bu.FullName)?"":bu.FullName),
+                new Claim("UserId",bu.UserId.ToString()),
+                new Claim(ClaimTypes.Role, bu.Role),
+                new Claim("Token",bu.Token),
                 new Claim("IP",ip),
                 new Claim("UA",useragent)
             };

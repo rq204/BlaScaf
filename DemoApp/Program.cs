@@ -76,6 +76,10 @@ namespace DemoApp
                 return datas;
             });
 
+            BsConfig.AddLogin = new Action<BsUser>((u) =>
+            {
+                //可以在数据库等地方更新登录记录
+            });
             BsConfig.AddOrUpdateUser = new Action<BsUser>((u) =>
             {
                 if (u.UserId == 0)
