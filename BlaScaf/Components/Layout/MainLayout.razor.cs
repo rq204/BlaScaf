@@ -53,7 +53,7 @@ namespace BlaScaf.Components.Layout
             ///权限不足
             if (bsMenu == null || (this.UserService.Role != null && !bsMenu.Roles.Contains(this.UserService.Role)))
             {
-                NavigationManager.NavigateTo("/", forceLoad: true);
+                NavigationManager.NavigateTo("/api/denied", forceLoad: true);
             }
         }
 

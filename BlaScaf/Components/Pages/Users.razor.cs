@@ -16,6 +16,7 @@ namespace BlaScaf.Components.Pages
     public partial class Users
     {
         [Inject] public MessageService MessageService { get; set; }
+        [Inject] public UserService UserService { get; set; }
 
         ITable table;
 
@@ -53,13 +54,22 @@ namespace BlaScaf.Components.Pages
             {
                 try
                 {
+                    if (this.editUser.Role == this.UserService.Role && this.UserService.UserName != "admin" && this.UserService.UserId != this.editUser.UserId)
+                    {
+                        throw new Exception("只有admin帐号才可以修改其它管理员帐号");
+                    }
+
+                    BsOptLog optLog = new BsOptLog() { OptData = this.editUser.UserName, UserId = this.UserService.UserId, UserName = this.UserService.UserName };
+
                     if (editUser.UserId == 0)
                     {
+                        optLog.OptType = "添加用户";
                         BsUser find = BsConfig.Users.Find(f => f.UserName == editUser.UserName || (!string.IsNullOrEmpty(editUser.FullName) && f.FullName == editUser.FullName));
                         if (find != null) throw new Exception("已经存在同名用户名或姓名");
                     }
                     else
                     {
+                        optLog.OptType = "编辑用户";
                         BsUser find = BsConfig.Users.Find(f => f.UserId != editUser.UserId && (f.UserName == editUser.UserName || (!string.IsNullOrEmpty(editUser.FullName) && f.FullName == editUser.FullName)));
                         if (find != null) throw new Exception("已经存在同名用户名或姓名");
                     }
@@ -69,8 +79,12 @@ namespace BlaScaf.Components.Pages
                     this.editUser.LastEdit = DateTime.Now;
                     if (!string.IsNullOrEmpty(this.editUser.Password)) this.editUser.LastChangePwd = DateTime.Now;
 
-                    BsConfig.AddOrUpdateUser(this.editUser);
                     if (editUser.UserId == 0) this.pageIndex = 0;
+                    BsConfig.AddOrUpdateUser(this.editUser);
+
+                    optLog.OptObjId = editUser.UserId;
+                    BsConfig.AddOptLog(optLog);
+
                     drawerVisible = false;
                     await this.PageIndexSizeChange();
                 }
@@ -86,10 +100,10 @@ namespace BlaScaf.Components.Pages
             isloading = true;
 
             this.userrsp.Value = BsConfig.Users
-                     .Skip((pageIndex - 1) * pageSize)
-                     .Take(pageSize)
-                     .OrderByDescending(x => x.UserId)
-                     .ToList();
+              .OrderByDescending(x => x.UserId)   // 先按 UserId 倒序
+              .Skip((pageIndex - 1) * pageSize)   // 再跳过
+              .Take(pageSize)                     // 再取
+              .ToList();
             this.userrsp.Total = BsConfig.Users.Count;
 
             this.showFullName = this.userrsp.Value.FindAll(f => !string.IsNullOrEmpty(f.FullName)).Count > 0;

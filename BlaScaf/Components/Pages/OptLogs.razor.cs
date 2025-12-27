@@ -43,7 +43,7 @@ namespace BlaScaf.Components.Pages
                 if (!string.IsNullOrEmpty(keyword))
                 {
                     this.keyword = "";
-                   await MessageService.ErrorAsync("任务名必须为数字，请重新输入");
+                    await MessageService.ErrorAsync("用户ID必须为数字，请重新输入");
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace BlaScaf.Components.Pages
         private async Task PageIndexSizeChange()
         {
             isloading = true;
-            this.logsrsp = BsConfig.GetOptLogs(this.pageIndex, pageSize,this.optUserId);
+            this.logsrsp = BsConfig.GetOptLogs(this.pageIndex, pageSize, this.optUserId);
             isloading = false;
             await base.InvokeAsync(base.StateHasChanged);
         }

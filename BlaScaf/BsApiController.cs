@@ -212,5 +212,78 @@ namespace BlaScaf
 
             return Unauthorized(); // 返回 401 Unauthorized
         }
+
+        [HttpGet("denied")]
+        public ContentResult Denied()
+        {
+            string referer = Request.Headers.Referer.ToString();
+
+            string html = $@"
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+    <meta charset='utf-8'>
+    <title>权限不足</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }}
+        .box {{
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,.1);
+        }}
+        h1 {{
+            color: #ff4d4f;
+            margin-bottom: 20px;
+        }}
+        button {{
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background: #1677ff;
+            color: #fff;
+            cursor: pointer;
+        }}
+        button:hover {{
+            background: #4096ff;
+        }}
+    </style>
+</head>
+<body>
+    <div class='box'>
+        <h1>权限不足</h1>
+        <p>你没有访问该资源的权限</p>
+        <button onclick='goBack()'>返回上一页</button>
+    </div>
+
+    <script>
+        function goBack() {{
+            var ref = document.referrer;
+            if (ref) {{
+                window.location.href = ref;
+            }} else {{
+                history.back();
+            }}
+        }}
+    </script>
+</body>
+</html>";
+
+            return new ContentResult
+            {
+                StatusCode = 403,
+                ContentType = "text/html; charset=utf-8",
+                Content = html
+            };
+        }
     }
 }
