@@ -1,14 +1,9 @@
 ﻿@inject UserService UserService
 
 <Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
-    @{
-        foreach (BsMenuItem bsMenuItem in BsConfig.MenuItems)
-        {
-            if (bsMenuItem.Roles.Contains(UserService.Role))
-            {
-                <MenuItem Key="@bsMenuItem.Key" Icon="@bsMenuItem.Icon" RouterLink="@bsMenuItem.RouterLink" Title="@bsMenuItem.Title">@bsMenuItem.Title</MenuItem>
-            }
-        }
+    @foreach (var item in FilterMenus(BsConfig.MenuItems))
+    {
+        <MenuNode Item="item" />
     }
 </Menu>
 
@@ -25,5 +20,24 @@
     protected override async Task OnInitializedAsync()
     {
         await UserService.LoadUserInfoAsync();
+    }
+
+    // ⭐ 递归权限过滤
+    private List<BsMenuItem> FilterMenus(List<BsMenuItem> menus)
+    {
+        return menus
+            .Where(m => m.Roles.Contains(UserService.Role))
+            .Select(m => new BsMenuItem
+                {
+                    Key = m.Key,
+                    Title = m.Title,
+                    Icon = m.Icon,
+                    RouterLink = m.RouterLink,
+                    Roles = m.Roles,
+                    Children = m.Children != null
+                        ? FilterMenus(m.Children)
+                        : new List<BsMenuItem>()
+                })
+            .ToList();
     }
 }

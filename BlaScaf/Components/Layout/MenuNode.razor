@@ -1,0 +1,44 @@
+﻿@using AntDesign
+
+@if (HasChildren)
+{
+    <SubMenu Key="@Item.Key">
+
+        <TitleTemplate>
+            @if (!string.IsNullOrEmpty(Item.Icon))
+            {
+                <Icon Type="@Item.Icon" Style="margin-right:8px;" />
+            }
+            <span>@Item.Title</span>
+        </TitleTemplate>
+
+        <ChildContent>
+            @foreach (var child in Item.Children)
+            {
+                <MenuNode Item="child" />
+            }
+        </ChildContent>
+
+    </SubMenu>
+}
+else
+{
+    <MenuItem Key="@Item.Key"
+              RouterLink="@Item.RouterLink">
+
+        @if (!string.IsNullOrEmpty(Item.Icon))
+        {
+            <Icon Type="@Item.Icon" Style="margin-right:8px;" />
+        }
+
+        @Item.Title
+
+    </MenuItem>
+}
+
+@code {
+    [Parameter] public BsMenuItem Item { get; set; }
+
+    private bool HasChildren =>
+        Item.Children != null && Item.Children.Any();
+}

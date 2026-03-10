@@ -3,6 +3,7 @@ using AntDesign;
 using BlaScaf.Components.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.JSInterop;
 
 namespace BlaScaf.Components.Layout
@@ -47,7 +48,7 @@ namespace BlaScaf.Components.Layout
             var ui = new Uri(NavigationManager.Uri);
             //currentPath = uri.AbsolutePath; // 例如 "/users"
             var relativePath = ui.AbsolutePath;// NavigationManager.ToBaseRelativePath(uri);
-            BsMenuItem bsMenu = BsConfig.MenuItems.Find(f => f.RouterLink == relativePath);
+            var bsMenu = FindMenuByRoute(BsConfig.MenuItems, relativePath);
             NavTitle = bsMenu?.Title;
 
             ///权限不足
@@ -55,6 +56,29 @@ namespace BlaScaf.Components.Layout
             {
                 NavigationManager.NavigateTo("/api/denied", forceLoad: true);
             }
+        }
+
+        private BsMenuItem FindMenuByRoute(List<BsMenuItem> menus, string route)
+        {
+            foreach (var menu in menus)
+            {
+                // 当前节点匹配
+                if (!string.IsNullOrEmpty(menu.RouterLink) &&
+                    menu.RouterLink.Equals(route, StringComparison.OrdinalIgnoreCase))
+                {
+                    return menu;
+                }
+
+                // 子节点递归查找
+                if (menu.Children != null && menu.Children.Any())
+                {
+                    var found = FindMenuByRoute(menu.Children, route);
+                    if (found != null)
+                        return found;
+                }
+            }
+
+            return null;
         }
 
         public void Dispose()
