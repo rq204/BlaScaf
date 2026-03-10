@@ -9,7 +9,10 @@
             {
                 <Icon Type="@Item.Icon" Style="margin-right:8px;" />
             }
-            <span>@Item.Title</span>
+            @if (!Collapsed)
+            {
+                <span style="margin-left:8px">@Item.Title</span>
+            }
         </TitleTemplate>
 
         <ChildContent>
@@ -31,13 +34,17 @@ else
             <Icon Type="@Item.Icon" Style="margin-right:8px;" />
         }
 
-        @Item.Title
+        @if (!Collapsed)
+        {
+            <span style="margin-left:8px">@Item.Title</span>
+        }
 
     </MenuItem>
 }
 
 @code {
     [Parameter] public BsMenuItem Item { get; set; }
+    [Parameter] public bool Collapsed { get; set; }
 
     private bool HasChildren =>
         Item.Children != null && Item.Children.Any();

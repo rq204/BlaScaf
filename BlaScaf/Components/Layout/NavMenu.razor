@@ -3,7 +3,7 @@
 <Menu Mode="MenuMode.Inline" Theme="MenuTheme.Light">
     @foreach (var item in FilterMenus(BsConfig.MenuItems))
     {
-        <MenuNode Item="item" />
+        <MenuNode Item="item" Collapsed="@Collapsed" />
     }
 </Menu>
 
