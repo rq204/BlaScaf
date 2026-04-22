@@ -59,62 +59,42 @@
     </Layout>
 </Layout>
 <script>
-    window.keepAlive = (timeoutMinutes , dotNetObj) => {
-        const KEEPALIVE_URL = '/api/keepalive';
-        const STORAGE_KEY = 'keepalive';
-        const CHECK_INTERVAL = timeoutMinutes / 2 * 60 * 1000; // 检查时间为 超时时间一半多6秒
-        const ACTIVITY_THRESHOLD = timeoutMinutes/ 2 * 60 * 1000; // 用户活跃时间阈值为 超时时间一半
-        const TIMEOUT_MS = timeoutMinutes * 60 * 1000;
+    window.keepAlive = (timeoutMinutes) => {
 
         let lastActivity = Date.now();
-        let lastRequest = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
 
-        // 记录用户最近操作时间
         const recordActivity = () => {
             lastActivity = Date.now();
         };
 
-        ['click', 'mousemove', 'keydown', 'scroll'].forEach(event =>
-            document.addEventListener(event, recordActivity, { passive: true })
+        const events = ['click', 'mousemove', 'keydown', 'scroll'];
+
+        events.forEach(e =>
+            document.addEventListener(e, recordActivity, { passive: true })
         );
 
-        // 跨标签页同步 lastRequest
-        window.addEventListener('storage', (e) => {
-            if (e.key === STORAGE_KEY && e.newValue) {
-                lastRequest = parseInt(e.newValue);
-            }
-        });
-
-        // 核心逻辑：是否触发保活请求
-        const tryKeepAlive = async () => {
+        const intervalId = setInterval(() => {
             const now = Date.now();
-            const userActiveRecently = now - lastActivity < ACTIVITY_THRESHOLD;
-            const timeoutExceeded = now - lastRequest > TIMEOUT_MS;
 
-            if (userActiveRecently || timeoutExceeded) {
-                try {
-                    const response = await fetch(KEEPALIVE_URL, {
-                        method: 'POST',
-                        credentials: 'include'
-                    });
-
-                    if (response.status === 401) {
-                        clearInterval(intervalId);
-                         if (dotNetObj && dotNetObj._disposed !== true && dotNetObj.invokeMethodAsync) {
-                                await dotNetObj.invokeMethodAsync("OnTimeOut");
-                            }
-                        return;
+            if (now - lastActivity < timeoutMinutes * 60 * 1000 / 2) {
+                fetch('/api/keepalive', {
+                    method: 'POST',
+                    credentials: 'include'
+                }).then(res => {
+                    if (res.status === 401) {
+                        window.location.href = '/login';
                     }
+                });
+            }
+        }, 60000);
 
-                    lastRequest = Date.now();
-                    localStorage.setItem(STORAGE_KEY, lastRequest.toString());
-                } catch (err) {
-                    console.warn('Keep-alive failed:', err);
-                }
+        return {
+            dispose: () => {
+                events.forEach(e =>
+                    document.removeEventListener(e, recordActivity)
+                );
+                clearInterval(intervalId);
             }
         };
-
-        // 间隔时间触发一次检查
-        let intervalId = setInterval(tryKeepAlive, CHECK_INTERVAL);
     };
 </script>

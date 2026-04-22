@@ -71,7 +71,7 @@ namespace BlaScaf.Components.Pages
             }
         }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             ///如果所有人要验证码，就直接显示
             if (BsConfig.CaptchaFragment != null && BsConfig.CaptchaRoles.Count > 0 && AreListsEqual(BsConfig.Roles, BsConfig.CaptchaRoles))
@@ -95,48 +95,10 @@ namespace BlaScaf.Components.Pages
                    grouped1.All(kvp => grouped2.TryGetValue(kvp.Key, out var count) && count == kvp.Value);
         }
 
-        private DotNetObjectReference<Login> objRef;
 
-        protected override void OnInitialized()
-        {
-            objRef = DotNetObjectReference.Create(this);
-        }
-
-        [JSInvokable]
-        public async Task OnLoginResult(bool success, string message)
-        {
-            // 检查组件是否已经被销毁
-            if (isDisposed) return;
-
-            isLoading = false;
-
-            if (success)
-            {
-                NavigationManager.NavigateTo("/", forceLoad: true);
-            }
-            else
-            {
-                await MessageService.ErrorAsync(message, 3);
-            }
-
-            // 安全地调用StateHasChanged
-            try
-            {
-                if (!isDisposed)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            catch (ObjectDisposedException)
-            {
-                // 组件已被销毁，忽略此异常
-            }
-        }
-
-        public async ValueTask DisposeAsync()
+        public void Dispose()
         {
             isDisposed = true; // 设置销毁标志
-            objRef?.Dispose();
         }
 
         private bool showcaptha = false;

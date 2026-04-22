@@ -20,15 +20,13 @@ namespace BlaScaf.Components.Shared
 
         private void OnLogout()
         {
-            JSRuntime.InvokeVoidAsync("bsLogout", objRef);
+            JSRuntime.InvokeVoidAsync("bsLogout");
         }
 
-        private DotNetObjectReference<UserProfileMenu> objRef;
 
         protected override void OnInitialized()
         {
             this.showName = string.IsNullOrEmpty(UserService.FullName) ? UserService.UserName : UserService.FullName;
-            objRef = DotNetObjectReference.Create(this);
         }
 
         private string showName = "";
@@ -42,16 +40,12 @@ namespace BlaScaf.Components.Shared
             }
             else
             {
-                this.MessageService.Error(message, 3);
+                await this.MessageService.ErrorAsync(message, 3);
             }
 
             StateHasChanged();
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            objRef?.Dispose();
-        }
 
         private bool changepwdVisible = false;
     }

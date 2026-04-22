@@ -24,8 +24,6 @@ namespace BlaScaf.Components.Layout
 
         protected override async Task OnInitializedAsync()
         {
-            objRef = DotNetObjectReference.Create(this);
-
             // 首先加载用户信息
             await CheckSession();
 
@@ -33,7 +31,10 @@ namespace BlaScaf.Components.Layout
 
             NavigationManager.LocationChanged += OnLocationChanged;
             // 每 30 秒检查一次
-            _timer = new Timer(async _ => await CheckSession(), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+            _timer = new Timer(_ =>
+            {
+                _ = InvokeAsync(CheckSession);
+            }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         }
 
 
@@ -81,12 +82,7 @@ namespace BlaScaf.Components.Layout
             return null;
         }
 
-        public void Dispose()
-        {
-            objRef?.Dispose();
-            NavigationManager.LocationChanged -= OnLocationChanged;
-        }
-
+        private IJSObjectReference jsRef;
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -95,23 +91,29 @@ namespace BlaScaf.Components.Layout
                 int timemin = BsConfig.CookieTimeOutMinutes > 34560 ? 34560 : BsConfig.CookieTimeOutMinutes;
 
                 // 初始化 JavaScript 交互
-                await JSRuntime.InvokeVoidAsync("keepAlive", timemin, objRef);
+                jsRef = await JSRuntime.InvokeAsync<IJSObjectReference>(
+           "keepAlive", timemin);
                 await JSRuntime.InvokeVoidAsync("setTitle", BsConfig.AppName);
             }
         }
 
-        private DotNetObjectReference<MainLayout> objRef;
-
-        [JSInvokable]
-        public async Task OnTimeOut()
-        {
-            NavigationManager.NavigateTo("/", forceLoad: true);
-        }
 
         public async ValueTask DisposeAsync()
         {
-            objRef?.Dispose();
             _timer?.Dispose();
+            NavigationManager.LocationChanged -= OnLocationChanged;
+            if (jsRef != null)
+            {
+                try
+                {
+                    await jsRef.InvokeVoidAsync("dispose");
+                    await jsRef.DisposeAsync();
+                }
+                catch
+                {
+
+                }
+            }
         }
 
         Timer _timer;
