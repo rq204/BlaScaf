@@ -3,7 +3,7 @@
 
 <PageHeader Title="@("用户管理")" Subtitle="@($"数量：{this.userrsp.Total}")">
     <PageHeaderExtra>
-        <Button @onclick="_=>NewDrawer()">添加用户</Button>
+        <Button OnClick="NewDrawer">添加用户</Button>
     </PageHeaderExtra>
 </PageHeader>
 
@@ -24,36 +24,36 @@
             @if (BsConfig.UserAuthFragment != null)
             {
                 <SpaceItem>
-                    <a @onclick="async e=>await SetUserAuth(context)">权限</a>
+                    <a @onclick="()=>SetUserAuth(context)">权限</a>
                 </SpaceItem>
             }
             <SpaceItem>
-                <a @onclick="async e=>await OnEdit(context)">编辑</a>
+                <a @onclick="()=>OnEdit(context)">编辑</a>
             </SpaceItem>
         </Space>
     </ActionColumn>
 </Table>
 
-<Drawer Closable="true" Width="480" Visible="@drawerVisible" Title="@editTitle" OnClose="_=>CloseDrawer()">
+<Drawer Closable="true" Width="480" Visible="@drawerVisible" Title="@editTitle" OnClose="CloseDrawer">
     <AntDesign.Template style="height:90%">
         <Row>
             <AntDesign.Col Span="24">
                 <Text>用户名</Text>
-                <Input Placeholder="请输入用户名" TValue="string" @bind-Value="@editUser.UserName" />
+                <Input Placeholder="请输入用户名" @bind-Value="@editUser.UserName" />
             </AntDesign.Col>
         </Row>
         <br />
         <Row>
             <AntDesign.Col Span="24">
                 <Text>姓  名</Text>
-                <Input Placeholder="请输入姓名" TValue="string" @bind-Value="@editUser.FullName" />
+                <Input Placeholder="请输入姓名" @bind-Value="@editUser.FullName" />
             </AntDesign.Col>
         </Row>
         <br />
         <Row>
             <AntDesign.Col Span="24">
                 <Text>密  码</Text>
-                <InputPassword Placeholder="请输入密码" TValue="string" @bind-Value="@editUser.Password" />
+                <InputPassword Placeholder="请输入密码" @bind-Value="@editUser.Password" />
             </AntDesign.Col>
         </Row>
         <br />

@@ -22,19 +22,18 @@ namespace BlaScaf.Components.Layout
         private string NavTitle = "首页";
         //List<RenderFragment> fragments = new List<RenderFragment>();
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
-            // 首先加载用户信息
-            await CheckSession();
+            //先更改密码
+            BsUser bu = BsConfig.Users.Find(f => f.UserId == UserService.UserId);
+            if (bu != null && BsConfig.ChangePwdDays > 0 && bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
+            {
+                changepwdVisible = true;
+            }
 
             UpdatePageTitle(this.NavigationManager.Uri);
 
             NavigationManager.LocationChanged += OnLocationChanged;
-            // 每 30 秒检查一次
-            _timer = new Timer(_ =>
-            {
-                _ = InvokeAsync(CheckSession);
-            }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         }
 
 
@@ -118,44 +117,5 @@ namespace BlaScaf.Components.Layout
 
         Timer _timer;
         private bool changepwdVisible = false;
-        private bool onlyfirstchange = true;
-        private async Task CheckSession()
-        {
-            await this.UserService.LoadUserInfoAsync();
-            if (this.UserService.UserId == 0)
-            {
-                NavigationManager.NavigateTo("/login", forceLoad: true);
-            }
-            else
-            {
-                BsUser bu = BsConfig.Users.Find(f => f.UserId == this.UserService.UserId);
-                ///token不存在要T出去
-                if (bu == null || bu.Token != this.UserService.Token)
-                {
-                    NavigationManager.NavigateTo("/api/logout?kicked=true", forceLoad: true);
-                }
-                else
-                {
-                    ///第一次强制要求改密码
-                    if (onlyfirstchange)
-                    {
-                        onlyfirstchange = false;
-
-                        if (BsConfig.ChangePwdDays > 0 && bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
-                        {
-                            changepwdVisible = true;
-                        }
-                    }
-                    else
-                    {
-                        if (bu.EndTime < DateTime.Now)//超过使用期限也T出去
-                        {
-                            NavigationManager.NavigateTo("/api/logout?kicked=true", forceLoad: true);
-                        }
-                    }
-                }
-
-            }
-        }
     }
 }

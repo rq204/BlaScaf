@@ -178,20 +178,12 @@ namespace BlaScaf
         /// <summary>
         /// 退出登录
         /// </summary>
-        /// <param name="kicked">是否被挤下线</param>
         /// <returns></returns>
-        [HttpGet("logout")]
-        public async Task<IActionResult> Logout([FromQuery] bool kicked)
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-            if (kicked)
-            {
-                return Redirect("/");
-            }
-            else
-            {
-                return Ok();
-            }
+            return Ok();
         }
 
         [HttpPost("keepalive")]

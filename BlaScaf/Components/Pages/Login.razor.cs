@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace BlaScaf.Components.Pages
 {
-    public partial class Login : IAsyncDisposable
+    public partial class Login : IDisposable
     {
         private BsUser loginModel = new();
         private bool isLoading = false;
@@ -30,44 +30,63 @@ namespace BlaScaf.Components.Pages
 
             isLoading = true;
 
-            BsUser bu = BsConfig.Users.Find(f => f.UserName == loginModel.UserName);
-            if (bu == null)
+            try
             {
-                if (!isDisposed) // 检查是否已销毁
+                BsUser bu = BsConfig.Users.Find(f => f.UserName == loginModel.UserName);
+                if (bu == null)
                 {
-                    await this.MessageService.ErrorAsync("用户名或密码错误", 3);
-                }
-            }
-            else
-            {
-                ///如果部分人要验证码，点击时出验证码
-                if (BsConfig.CaptchaRoles.Contains(bu.Role) && BsConfig.CaptchaFragment != null && this.fragment == null)
-                {
-                    fragment = BsConfig.CaptchaFragment();
-                }
-                else if (BsConfig.CaptchaRoles.Contains(bu.Role) && BsConfig.CaptchaFragment != null && this.fragment != null && string.IsNullOrEmpty(loginModel.Token))
-                {
-                    await this.MessageService.ErrorAsync("验证码不能为空", 3);
+                    if (!isDisposed) // 检查是否已销毁
+                    {
+                        await this.MessageService.ErrorAsync("用户名或密码错误", 3);
+                    }
                 }
                 else
                 {
-                    BsUser dto = new BsUser() { UserName = loginModel.UserName, Token = loginModel.Token };
-                    dto.Password = Utility.MD5(loginModel.Password);
-                    string key = Guid.NewGuid().ToString("N");
-                    dto.Password = Utility.DESEncrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
-                    BsSecurity.UserHashKey[dto.UserName] = key;
-
-                    if (!isDisposed) // 检查是否已销毁
+                    ///如果部分人要验证码，点击时出验证码
+                    if (BsConfig.CaptchaRoles.Contains(bu.Role) && BsConfig.CaptchaFragment != null && this.fragment == null)
                     {
-                        await JSRuntime.InvokeVoidAsync("bsLogin", dto.UserName, dto.Password, dto.Token, objRef);
+                        fragment = BsConfig.CaptchaFragment();
+                    }
+                    else if (BsConfig.CaptchaRoles.Contains(bu.Role) && BsConfig.CaptchaFragment != null && this.fragment != null && string.IsNullOrEmpty(loginModel.Token))
+                    {
+                        await this.MessageService.ErrorAsync("验证码不能为空", 3);
+                    }
+                    else
+                    {
+                        BsUser dto = new BsUser() { UserName = loginModel.UserName, Token = loginModel.Token };
+                        dto.Password = Utility.MD5(loginModel.Password);
+                        string key = Guid.NewGuid().ToString("N");
+                        dto.Password = Utility.DESEncrypt(dto.Password, key.Substring(0, 8), key.Substring(8, 8));
+                        BsSecurity.UserHashKey[dto.UserName] = key;
+
+                        if (!isDisposed) // 检查是否已销毁
+                        {
+                            var result = await JSRuntime.InvokeAsync<BsJsMsg>("bsLogin",
+        dto.UserName,
+        dto.Password,
+        dto.Token);
+
+                            if (result.Success)
+                            {
+                                NavigationManager.NavigateTo("/", true);
+                            }
+                            else
+                            {
+                                await MessageService.ErrorAsync(result.Message);
+                            }
+                        }
                     }
                 }
-            }
 
-            if (!isDisposed) // 检查是否已销毁
+                if (!isDisposed) // 检查是否已销毁
+                {
+                    isLoading = false;
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            finally
             {
                 isLoading = false;
-                await InvokeAsync(StateHasChanged);
             }
         }
 
@@ -94,7 +113,6 @@ namespace BlaScaf.Components.Pages
             return grouped1.Count == grouped2.Count &&
                    grouped1.All(kvp => grouped2.TryGetValue(kvp.Key, out var count) && count == kvp.Value);
         }
-
 
         public void Dispose()
         {

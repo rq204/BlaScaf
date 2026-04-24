@@ -89,7 +89,7 @@ namespace BlaScaf
             // 注册 Blazor Server 专用的身份状态提供器，用于获取当前用户的身份信息
             // AuthenticationStateProvider 是 Blazor 中用于提供用户认证状态的抽象基类
             // ServerAuthenticationStateProvider 是 Blazor Server 的默认实现
-            services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+            services.AddScoped<AuthenticationStateProvider, BsAuthStateProvider>();
 
             // 启用级联身份验证状态，使 Blazor 组件树可以通过 [CascadingParameter] 注入 AuthenticationState
             // 这样组件中可以使用 <AuthorizeView>、[AuthorizeView]、[CascadingAuthenticationState] 等功能

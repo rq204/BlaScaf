@@ -43,41 +43,33 @@
     }
 </style>
 <script>
-     window.bsLogin = async function (username, password, token, dotNetObj) {
-         let dto = {
-             username: username,
-             password: password,
-             token: token
-         };
+        window.bsLogin = async function (username, password, token) {
+        let dto = {
+            username: username,
+            password: password,
+            token: token
+        };
 
-         let success = false;
-         let message = "";
+        try {
+            let response = await fetch('/api/login', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dto)
+            });
 
-         try {
-             let response = await fetch('/api/login', {
-                 method: 'POST',
-                 credentials: 'include', // 关键：要能收到 Set-Cookie
-                 headers: {
-                     'Content-Type': 'application/json'
-                 },
-                 body: JSON.stringify(dto)
-             });
+            const responseText = await response.text();
 
-             const responseText = await response.text();
-             if (response.ok) {
-                 success = true;
-             } else if (response.status === 401) {
-                 message = responseText;
-             } else {
-                 message = "登录失败:" + responseText ;
-             }
-         } catch (err) {
-             message = "网络错误：" + err.message;
-         }
-
-         if (dotNetObj && dotNetObj.invokeMethodAsync) {
-             await dotNetObj.invokeMethodAsync("OnLoginResult", success, message);
-         }
+            if (response.ok) {
+                return { success: true, message: "" };
+            } else {
+                return { success: false, message: responseText || "登录失败" };
+            }
+        } catch (err) {
+            return { success: false, message: "网络错误：" + err.message };
+        }
     }
 </script>
 

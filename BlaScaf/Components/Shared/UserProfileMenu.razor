@@ -20,25 +20,27 @@
 <ChangePassword IsForceChange=false Tips="修改密码" @bind-Visible="@changepwdVisible" />
 
 <script>
-    window.bsLogout = async function (dotNetObj) {
-        let success = false;
-        let message = "";
-
+    window.bsLogout = async function () {
         try {
             let response = await fetch('/api/logout', {
-                method: 'GET',
-                credentials: 'include' // 关键：要能收到 Set-Cookie
+                method: 'POST',                // ✅ 改 POST
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
-            if (response.ok) {
-                success = true;
-            }
-        } catch (err) {
-            message = "网络错误：" + err.message;
-        }
+            const text = await response.text();
 
-        if (dotNetObj && dotNetObj.invokeMethodAsync) {
-            await dotNetObj.invokeMethodAsync("OnLogoutResult", success, message);
+            if (response.ok) {
+                return { success: true, message: "" };
+            } else {
+                return { success: false, message: text || "退出失败" };
+            }
+
+        } catch (err) {
+            return { success: false, message: "网络错误：" + err.message };
         }
     }
 </script>
+

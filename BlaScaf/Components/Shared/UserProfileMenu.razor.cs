@@ -2,10 +2,11 @@
 using BlaScaf.Components.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Threading.Tasks;
 
 namespace BlaScaf.Components.Shared
 {
-    public partial class UserProfileMenu : IAsyncDisposable
+    public partial class UserProfileMenu : IDisposable
     {
         [Inject] public UserService UserService { get; set; }
         [Inject] public NavigationManager NavigationManager { get; set; }
@@ -18,9 +19,18 @@ namespace BlaScaf.Components.Shared
             this.changepwdVisible = true;
         }
 
-        private void OnLogout()
+        private async Task OnLogout()
         {
-            JSRuntime.InvokeVoidAsync("bsLogout");
+            var result = await JSRuntime.InvokeAsync<BsJsMsg>("bsLogout");
+
+            if (result.Success)
+            {
+                NavigationManager.NavigateTo("/", true); // 强制刷新
+            }
+            else
+            {
+                await this.MessageService.ErrorAsync(result.Message, 3);
+            }
         }
 
 
@@ -31,21 +41,10 @@ namespace BlaScaf.Components.Shared
 
         private string showName = "";
 
-        [JSInvokable]
-        public async Task OnLogoutResult(bool success, string message)
+        public void Dispose()
         {
-            if (success)
-            {
-                NavigationManager.NavigateTo("/", forceLoad: true);
-            }
-            else
-            {
-                await this.MessageService.ErrorAsync(message, 3);
-            }
-
-            StateHasChanged();
+            
         }
-
 
         private bool changepwdVisible = false;
     }
