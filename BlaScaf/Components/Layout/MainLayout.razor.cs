@@ -1,10 +1,10 @@
-﻿
-using AntDesign;
+﻿using AntDesign;
 using BlaScaf.Components.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.JSInterop;
+using System.Threading.Tasks;
 
 namespace BlaScaf.Components.Layout
 {
@@ -20,13 +20,19 @@ namespace BlaScaf.Components.Layout
         }
 
         private string NavTitle = "首页";
-        //List<RenderFragment> fragments = new List<RenderFragment>();
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
+            await UserService.LoadUserInfoAsync();
+            if (UserService.UserId == 0)
+            {
+                NavigationManager.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
             //先更改密码
             BsUser bu = BsConfig.Users.Find(f => f.UserId == UserService.UserId);
-            if (bu != null && BsConfig.ChangePwdDays > 0 && bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
+            if (BsConfig.ChangePwdDays > 0 && bu.LastChangePwd.AddDays(BsConfig.ChangePwdDays) < DateTime.Now)
             {
                 changepwdVisible = true;
             }

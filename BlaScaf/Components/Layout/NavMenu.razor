@@ -17,11 +17,6 @@
         StateHasChanged(); // ⭐ 强制刷新
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await UserService.LoadUserInfoAsync();
-    }
-
     // ⭐ 递归权限过滤
     private List<BsMenuItem> FilterMenus(List<BsMenuItem> menus)
     {
