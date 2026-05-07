@@ -105,5 +105,10 @@ namespace BlaScaf
         {
            typeof(BlaScaf.Components.Pages.Login)
         };
+
+        /// <summary>
+        /// 路由链接，不显示在菜单当中
+        /// </summary>
+        public static List<BsMenuItem> RouterLinkPages = new List<BsMenuItem>();
     }
 }

@@ -30,8 +30,8 @@
                     RouterLink = m.RouterLink,
                     Roles = m.Roles,
                     Children = m.Children != null
-                        ? FilterMenus(m.Children)
-                        : new List<BsMenuItem>()
+                                    ? FilterMenus(m.Children)
+                                    : new List<BsMenuItem>()
                 })
             .ToList();
     }

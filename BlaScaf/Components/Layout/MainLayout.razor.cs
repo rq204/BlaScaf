@@ -55,6 +55,7 @@ namespace BlaScaf.Components.Layout
             //currentPath = uri.AbsolutePath; // 例如 "/users"
             var relativePath = ui.AbsolutePath;// NavigationManager.ToBaseRelativePath(uri);
             var bsMenu = FindMenuByRoute(BsConfig.MenuItems, relativePath);
+            if (bsMenu == null) bsMenu = FindMenuByRoute(BsConfig.RouterLinkPages, relativePath);
             NavTitle = bsMenu?.Title;
 
             ///权限不足
@@ -69,8 +70,8 @@ namespace BlaScaf.Components.Layout
             foreach (var menu in menus)
             {
                 // 当前节点匹配
-                if (!string.IsNullOrEmpty(menu.RouterLink) &&
-                    menu.RouterLink.Equals(route, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(menu.RouterLink) && (route.Equals(menu.RouterLink, StringComparison.OrdinalIgnoreCase) ||
+     route.StartsWith(menu.RouterLink + "/", StringComparison.OrdinalIgnoreCase)))
                 {
                     return menu;
                 }
