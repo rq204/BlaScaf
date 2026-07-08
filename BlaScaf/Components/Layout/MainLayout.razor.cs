@@ -45,18 +45,22 @@ namespace BlaScaf.Components.Layout
 
         private void OnLocationChanged(object sender, LocationChangedEventArgs e)
         {
-            UpdatePageTitle(e.Location);
-            StateHasChanged();
+            _ = InvokeAsync(async () =>
+            {
+                UpdatePageTitle(e.Location);
+                await SetBrowserTitleAsync();
+                StateHasChanged();
+            });
         }
 
         private void UpdatePageTitle(string uri)
         {
-            var ui = new Uri(NavigationManager.Uri);
+            var ui = new Uri(uri);
             //currentPath = uri.AbsolutePath; // 例如 "/users"
             var relativePath = ui.AbsolutePath;// NavigationManager.ToBaseRelativePath(uri);
             var bsMenu = FindMenuByRoute(BsConfig.MenuItems, relativePath);
             if (bsMenu == null) bsMenu = FindMenuByRoute(BsConfig.RouterLinkPages, relativePath);
-            NavTitle = bsMenu?.Title;
+            NavTitle = string.IsNullOrWhiteSpace(bsMenu?.Title) ? "首页" : bsMenu.Title;
 
             ///权限不足
             if (bsMenu == null || (this.UserService.Role != null && !bsMenu.Roles.Contains(this.UserService.Role)))
@@ -99,8 +103,23 @@ namespace BlaScaf.Components.Layout
                 // 初始化 JavaScript 交互
                 jsRef = await JSRuntime.InvokeAsync<IJSObjectReference>(
            "keepAlive", timemin);
-                await JSRuntime.InvokeVoidAsync("setTitle", BsConfig.AppName);
+                await SetBrowserTitleAsync();
             }
+        }
+
+        private async Task SetBrowserTitleAsync()
+        {
+            await JSRuntime.InvokeVoidAsync("setTitle", GetBrowserTitle());
+        }
+
+        private string GetBrowserTitle()
+        {
+            if (string.IsNullOrWhiteSpace(NavTitle))
+            {
+                return BsConfig.AppName;
+            }
+
+            return $"{BsConfig.AppName} - {NavTitle}";
         }
 
 
