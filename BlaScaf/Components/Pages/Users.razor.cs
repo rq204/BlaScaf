@@ -78,7 +78,6 @@ namespace BlaScaf.Components.Pages
                     if (!string.IsNullOrEmpty(editUser.Password) && editUser.Password.Length >= 32) throw new Exception("密码长度不能大于32位");
                     this.editUser.LastEdit = DateTime.Now;
                     if (!string.IsNullOrEmpty(this.editUser.Password)) this.editUser.LastChangePwd = DateTime.Now;
-
                     if (editUser.UserId == 0) this.pageIndex = 0;
                     BsConfig.AddOrUpdateUser(this.editUser);
 
