@@ -110,5 +110,10 @@ namespace BlaScaf
         /// 路由链接，不显示在菜单当中
         /// </summary>
         public static List<BsMenuItem> RouterLinkPages = new List<BsMenuItem>();
+
+        /// <summary>
+        /// 设置浏览器标题，传入的是导航标题
+        /// </summary>
+        public static Func<string,string> SetBrowserTitle;
     }
 }

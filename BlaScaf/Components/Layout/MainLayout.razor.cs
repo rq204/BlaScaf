@@ -114,6 +114,7 @@ namespace BlaScaf.Components.Layout
 
         private string GetBrowserTitle()
         {
+            if (BsConfig.SetBrowserTitle != null) return BsConfig.SetBrowserTitle(NavTitle);
             if (string.IsNullOrWhiteSpace(NavTitle))
             {
                 return BsConfig.AppName;
