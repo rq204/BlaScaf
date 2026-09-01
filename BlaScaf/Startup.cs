@@ -17,7 +17,19 @@ namespace BlaScaf
         {
             // 添加 Razor 组件服务
             services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+                .AddInteractiveServerComponents(options =>
+                {
+                    // 低并发后台场景下，尽量保留断线重连窗口，避免短暂抖动后直接丢失页面状态。
+                    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(30);
+                    options.DisconnectedCircuitMaxRetained = 256;
+                    options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(2);
+                })
+                .AddHubOptions(options =>
+                {
+                    options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
+                    options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+                    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+                });
 
             // 添加 AntDesign UI 框架
             services.AddAntDesign();

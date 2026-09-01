@@ -1,4 +1,4 @@
-﻿@using System.Text.Json
+@using System.Text.Json
 @inherits LayoutComponentBase
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
@@ -60,39 +60,45 @@
 </Layout>
 <script>
     window.keepAlive = (timeoutMinutes) => {
+        const heartbeatMinutes = Math.max(1, Math.min(4, Math.floor(timeoutMinutes / 3) || 1));
+        const intervalMs = heartbeatMinutes * 60 * 1000;
 
-        let lastActivity = Date.now();
+        const sendKeepAlive = () => {
+            if (navigator.onLine === false) {
+                return;
+            }
 
-        const recordActivity = () => {
-            lastActivity = Date.now();
+            fetch('/api/keepalive', {
+                method: 'POST',
+                credentials: 'include',
+                cache: 'no-store'
+            }).then(res => {
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                }
+            }).catch(() => {
+                // 网络抖动时交给 Blazor 自身重连机制处理，这里不额外打断页面。
+            });
         };
 
-        const events = ['click', 'mousemove', 'keydown', 'scroll'];
-
-        events.forEach(e =>
-            document.addEventListener(e, recordActivity, { passive: true })
-        );
-
-        const intervalId = setInterval(() => {
-            const now = Date.now();
-
-            if (now - lastActivity < timeoutMinutes * 60 * 1000 / 2) {
-                fetch('/api/keepalive', {
-                    method: 'POST',
-                    credentials: 'include'
-                }).then(res => {
-                    if (res.status === 401) {
-                        window.location.href = '/login';
-                    }
-                });
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                sendKeepAlive();
             }
-        }, 60000);
+        };
+
+        const onFocus = () => sendKeepAlive();
+
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('focus', onFocus);
+
+        const intervalId = setInterval(sendKeepAlive, intervalMs);
+        setTimeout(sendKeepAlive, 5000);
 
         return {
             dispose: () => {
-                events.forEach(e =>
-                    document.removeEventListener(e, recordActivity)
-                );
+                document.removeEventListener('visibilitychange', onVisibilityChange);
+                window.removeEventListener('focus', onFocus);
                 clearInterval(intervalId);
             }
         };
