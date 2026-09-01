@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Reflection;
 
@@ -110,6 +110,11 @@ namespace BlaScaf
         /// 路由链接，不显示在菜单当中
         /// </summary>
         public static List<BsMenuItem> RouterLinkPages = new List<BsMenuItem>();
+
+        /// <summary>
+        /// 数据库管理页允许操作的实体类型，留空时自动扫描所有带 Table 特性的实体
+        /// </summary>
+        public static List<Type> DbAdminEntityTypes = new List<Type>();
 
         /// <summary>
         /// 设置浏览器标题，传入的是导航标题

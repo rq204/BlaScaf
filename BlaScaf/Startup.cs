@@ -1,4 +1,4 @@
-﻿using AntDesign;
+using AntDesign;
 using AntDesign.Locales;
 using BlaScaf.Components;
 using BlaScaf.Components.Shared;
@@ -29,6 +29,7 @@ namespace BlaScaf
 
             //注入用户信息解析服务
             services.AddScoped<UserService>();
+            services.AddScoped<BsDbAdminService>();
 
             //添加api的支持
             services.AddControllers();

@@ -1,0 +1,204 @@
+.bs-dbadmin-entity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.bs-dbadmin-entity-item {
+    width: 100%;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fff;
+    padding: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bs-dbadmin-entity-item:hover,
+.bs-dbadmin-entity-item.active {
+    border-color: #1677ff;
+    background: #e6f4ff;
+}
+
+.bs-dbadmin-entity-name {
+    font-weight: 600;
+    color: #262626;
+}
+
+.bs-dbadmin-entity-table {
+    margin-top: 4px;
+    color: #8c8c8c;
+    font-size: 12px;
+}
+
+.bs-dbadmin-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 16px;
+    color: #595959;
+}
+
+.bs-dbadmin-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.bs-dbadmin-side-form {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fafafa;
+}
+
+.bs-dbadmin-form-title {
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.bs-dbadmin-form-label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.bs-dbadmin-input,
+.bs-dbadmin-textarea {
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+    font: inherit;
+    background: #fff;
+}
+
+.bs-dbadmin-input {
+    margin-bottom: 8px;
+}
+
+.bs-dbadmin-textarea {
+    min-height: 180px;
+    resize: vertical;
+}
+
+.bs-dbadmin-textarea-sm {
+    min-height: 96px;
+}
+
+.bs-dbadmin-side-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.bs-dbadmin-section {
+    margin-top: 20px;
+}
+
+.bs-dbadmin-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.bs-dbadmin-table-scroll {
+    overflow-x: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+}
+
+.bs-dbadmin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.bs-dbadmin-table th,
+.bs-dbadmin-table td {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 12px;
+    text-align: left;
+    vertical-align: top;
+    max-width: 260px;
+    word-break: break-all;
+}
+
+.bs-dbadmin-table thead th {
+    background: #fafafa;
+    white-space: nowrap;
+}
+
+.bs-dbadmin-table .action-column {
+    white-space: nowrap;
+    width: 120px;
+}
+
+.bs-dbadmin-table .danger-link {
+    color: #ff4d4f;
+}
+
+.bs-dbadmin-table .splitter {
+    margin: 0 8px;
+    color: #d9d9d9;
+}
+
+.empty-cell {
+    text-align: center;
+    color: #8c8c8c;
+}
+
+.bs-dbadmin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.bs-dbadmin-entity-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.bs-dbadmin-summary-row {
+    margin-bottom: 6px;
+    color: #595959;
+}
+
+.bs-dbadmin-schema-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bs-dbadmin-sql-result {
+    margin: 12px 0;
+    color: #262626;
+}
+
+.bs-dbadmin-form-item {
+    margin-bottom: 16px;
+}
+
+.bs-dbadmin-form-meta {
+    margin: 6px 0 10px;
+    color: #8c8c8c;
+    font-size: 12px;
+}
+
+.bs-dbadmin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}

@@ -1,9 +1,7 @@
 using BlaScaf;
-using BlaScaf.Components.Pages;
-using BlaScaf.Components.Shared;
 using DemoApp.Shared;
+using FreeSql;
 using Microsoft.AspNetCore.Components;
-using System.Collections.Generic;
 
 namespace DemoApp
 {
@@ -11,32 +9,75 @@ namespace DemoApp
     {
         public static void Main(string[] args)
         {
-            BsConfig.AppName = "BlaScaf管理系统演示";
+            var adminRole = "\u7ba1\u7406\u5458";
+            var auditRole = "\u5ba1\u8ba1\u5458";
+
+            BsConfig.AppName = "BlaScaf\u540e\u53f0\u7cfb\u7edf\u6f14\u793a";
             BsConfig.CookieTimeOutMinutes = 30;
             BsConfig.ChangePwdDays = 90;
 
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "home", Icon = "home", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/", Title = "首页" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "users", Icon = "user", Roles = new List<string>() { "管理员" }, RouterLink = "/users", Title = "用户管理" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "optlogs", Icon = "edit", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/optlogs", Title = "操作日志" });
-            BsConfig.MenuItems.Add(new BsMenuItem() { Key = "syslogs", Icon = "highlight", Roles = new List<string>() { "管理员", "操作员" }, RouterLink = "/syslogs", Title = "系统日志" });
+            BsConfig.Roles = new List<string> { adminRole, auditRole };
+            BsConfig.DbAdminEntityTypes = new List<Type> { typeof(BsUser), typeof(BsOptLog), typeof(BsSysLog) };
+
+            BsConfig.MenuItems.Add(new BsMenuItem
+            {
+                Key = "home",
+                Icon = "home",
+                Roles = new List<string> { adminRole, auditRole },
+                RouterLink = "/",
+                Title = "\u9996\u9875"
+            });
+            BsConfig.MenuItems.Add(new BsMenuItem
+            {
+                Key = "users",
+                Icon = "user",
+                Roles = new List<string> { adminRole },
+                RouterLink = "/users",
+                Title = "\u7528\u6237\u7ba1\u7406"
+            });
+            BsConfig.MenuItems.Add(new BsMenuItem
+            {
+                Key = "dbadmin",
+                Icon = "database",
+                Roles = new List<string> { adminRole },
+                RouterLink = "/dbadmin",
+                Title = "\u6570\u636e\u5e93\u7ba1\u7406"
+            });
+            BsConfig.MenuItems.Add(new BsMenuItem
+            {
+                Key = "optlogs",
+                Icon = "edit",
+                Roles = new List<string> { adminRole, auditRole },
+                RouterLink = "/optlogs",
+                Title = "\u64cd\u4f5c\u65e5\u5fd7"
+            });
+            BsConfig.MenuItems.Add(new BsMenuItem
+            {
+                Key = "syslogs",
+                Icon = "highlight",
+                Roles = new List<string> { adminRole, auditRole },
+                RouterLink = "/syslogs",
+                Title = "\u7cfb\u7edf\u65e5\u5fd7"
+            });
 
             RenderFragment fragment = builder =>
             {
-                builder.OpenComponent<Shared.DemoFragment>(0);
-                builder.AddAttribute(1, "Title", "我是动态组件");
-                builder.AddAttribute(2, "Content", $"生成于 {DateTime.Now:T}");
+                builder.OpenComponent<DemoFragment>(0);
+                builder.AddAttribute(1, "Title", "\u8fd9\u662f\u52a8\u6001\u5185\u5bb9");
+                builder.AddAttribute(2, "Content", $"\u5f53\u524d\u65f6\u95f4 {DateTime.Now:T}");
                 builder.CloseComponent();
             };
             BsConfig.HeaderFragments.Add(fragment);
+
             BsConfig.UserAuthFragment = (BsUser user, Func<Task> onCloseCallback) => builder =>
             {
-                builder.OpenComponent(0, typeof(UserFragment));
-                builder.AddAttribute(1, "User", user); // 给组件传参
+                builder.OpenComponent<UserFragment>(0);
+                builder.AddAttribute(1, "User", user);
                 builder.AddAttribute(2, "Visible", true);
-                // 如果有关闭回调，添加VisibleChanged事件处理
+
                 if (onCloseCallback != null)
                 {
-                    builder.AddAttribute(3, "VisibleChanged", EventCallback.Factory.Create<bool>(new object(), async (visible) =>
+                    builder.AddAttribute(3, "VisibleChanged", EventCallback.Factory.Create<bool>(new object(), async visible =>
                     {
                         if (!visible)
                         {
@@ -44,90 +85,83 @@ namespace DemoApp
                         }
                     }));
                 }
+
                 builder.CloseComponent();
             };
 
             BsConfig.HeadInjectRawHtmls.Add("<script src='test.js'></script>");
-
-            ///设置权限
-            BsConfig.Roles = new List<string>() { "管理员", "操作员" };
-            //添加示例帐号
-            BsConfig.Users.Add(new BsUser() { UserId = 1, UserName = "admin", FullName = "张三", Password = Utility.MD5("admin"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-1), Role = "管理员", LastLogin = DateTime.Now.AddDays(-1) });
-            BsConfig.Users.Add(new BsUser() { UserId = 2, UserName = "test", FullName = "李四", Password = Utility.MD5("Test1234"), AddTime = DateTime.Now, Enable = true, EndTime = DateTime.Now.AddYears(10), LastChangePwd = DateTime.Now.AddDays(-1), Role = "操作员", LastLogin = DateTime.Now.AddDays(-1) });
-
-            BsConfig.GetOptLogs = new Func<int, int, int, QueryRsp<List<BsOptLog>>>((a, b, c) =>
-            {
-                QueryRsp<List<BsOptLog>> datas = new QueryRsp<List<BsOptLog>>() { Value = new List<BsOptLog>() };
-                for (int i = 0; i < 100; i++)
-                {
-                    datas.Value.Add(new BsOptLog() { OptLogId = i+1, OptTime = DateTime.Now.AddMinutes(0 - i), Summary = "示例操作" });
-                }
-                datas.Total = datas.Value.Count;
-                return datas;
-            });
-            BsConfig.GetSysLogs = new Func<int, int, QueryRsp<List<BsSysLog>>>((pageindex, pagesize) =>
-            {
-                QueryRsp<List<BsSysLog>> datas = new QueryRsp<List<BsSysLog>>() { Value = new List<BsSysLog>() };
-                for (int i = 0; i < 100; i++)
-                {
-                    datas.Value.Add(new BsSysLog() { SysLogId = i + 1, SysTime = DateTime.Now.AddMinutes(0 - i), LogType = "登录成功", Message = $"帐号{i}在XX点XX分登录成功" });
-                }
-                datas.Total = datas.Value.Count;
-                return datas;
-            });
-
-            BsConfig.AddLogin = new Action<BsUser>((u) =>
-            {
-                //可以在数据库等地方更新登录记录
-            });
-            BsConfig.AddOrUpdateUser = new Action<BsUser>((u) =>
-            {
-                if (u.UserId == 0)
-                {
-                    if (u.Role == "管理员" && u.Password.Length < 15) throw new Exception("管理员密码长度必须大于等于15位");
-                    u.Password = Utility.MD5(u.Password);
-                    BsConfig.Users.Insert(0, u);
-                    u.UserId = BsConfig.Users.Count;
-                }
-                else
-                {
-                    BsUser old = BsConfig.Users.Find(f => f.UserId == u.UserId);
-                    if (!string.IsNullOrEmpty(u.Password) && u.Password.Length != 32)
-                    {
-                        if (u.Role == "管理员" && u.Password.Length < 15) throw new Exception("管理员密码长度必须大于等于15位");
-                        u.Password = Utility.MD5(u.Password);
-                    }
-                    else
-                    {
-                        u.Password = old.Password;
-                    }
-
-                    ///更新字段
-                    Utility.UpdateDifferentProperties<BsUser>(u, old);
-                }
-            });
-            BsConfig.AddSysLog = new Action<BsSysLog>((x) => { });
-            BsConfig.AddOptLog = new Action<BsOptLog>((x) => { });
-
-            ///验证码组件
-            BsConfig.CaptchaRoles = new List<string>() { "管理员" };
+            BsConfig.CaptchaRoles = new List<string> { auditRole };
             BsConfig.CaptchaFragment = () => builder =>
             {
-                builder.OpenComponent<Shared.CaptchaFragment>(0);
+                builder.OpenComponent<CaptchaFragment>(0);
                 builder.CloseComponent();
             };
 
-            BlaScaf.Startup.CheckBsConfig();
-
             var builder = WebApplication.CreateBuilder(args);
+
+            var dbPath = Path.Combine(AppContext.BaseDirectory, "blascaf_demo.db");
+            var fsql = new FreeSqlBuilder()
+                .UseConnectionString(DataType.Sqlite, $"Data Source={dbPath}")
+                .UseAutoSyncStructure(true)
+                .Build();
+
+            fsql.CodeFirst.SyncStructure(new[] { typeof(BsUser), typeof(BsOptLog), typeof(BsSysLog) });
+            SeedUsers(fsql, adminRole, auditRole);
+
+            BsConfig.Users = fsql.Select<BsUser>().OrderByDescending(x => x.UserId).ToList();
+            Startup.InitFreeSqlActionFunc(fsql);
+            BsConfig.AddLogin = user =>
+            {
+                fsql.Update<BsUser>().SetSource(user).ExecuteAffrows();
+            };
+
+            Startup.CheckBsConfig();
+
+            builder.Services.AddSingleton<IFreeSql>(fsql);
             builder.Services.AddBsService();
 
             var app = builder.Build();
-
             app.UseBsService();
-
             app.Run();
         }
 
+        private static void SeedUsers(IFreeSql fsql, string adminRole, string auditRole)
+        {
+            if (!fsql.Select<BsUser>().Any(x => x.UserName == "admin"))
+            {
+                fsql.Insert(new BsUser
+                {
+                    UserName = "admin",
+                    FullName = "\u7cfb\u7edf\u7ba1\u7406\u5458",
+                    Password = Utility.MD5("admin"),
+                    AddTime = DateTime.Now,
+                    Enable = true,
+                    EndTime = DateTime.Now.AddYears(10),
+                    LastChangePwd = DateTime.Now.AddDays(-1),
+                    Role = adminRole,
+                    LastLogin = DateTime.Now.AddDays(-1),
+                    RegIP = "127.0.0.1",
+                    LastIP = "127.0.0.1"
+                }).ExecuteAffrows();
+            }
+
+            if (!fsql.Select<BsUser>().Any(x => x.UserName == "test"))
+            {
+                fsql.Insert(new BsUser
+                {
+                    UserName = "test",
+                    FullName = "\u5ba1\u8ba1\u793a\u4f8b",
+                    Password = Utility.MD5("Test1234"),
+                    AddTime = DateTime.Now,
+                    Enable = true,
+                    EndTime = DateTime.Now.AddYears(10),
+                    LastChangePwd = DateTime.Now.AddDays(-1),
+                    Role = auditRole,
+                    LastLogin = DateTime.Now.AddDays(-1),
+                    RegIP = "127.0.0.1",
+                    LastIP = "127.0.0.1"
+                }).ExecuteAffrows();
+            }
+        }
     }
 }

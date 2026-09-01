@@ -1,0 +1,349 @@
+@page "/dbadmin"
+@attribute [Authorize]
+
+<PageHeader Title="数据库管理" Subtitle="真实表结构 + 实体说明 + SQL 控制台">
+    <PageHeaderExtra>
+        <Space>
+            <SpaceItem>
+                <Button OnClick="RefreshTablesAsync">刷新结构</Button>
+            </SpaceItem>
+            <SpaceItem>
+                <Button Type="ButtonType.Primary" OnClick="OpenCreateDrawer">新增记录</Button>
+            </SpaceItem>
+            <SpaceItem>
+                <Button OnClick="CreateTableAsync">新建表</Button>
+            </SpaceItem>
+            @if (currentTable != null)
+            {
+                <SpaceItem>
+                    <Button Danger="true" OnClick="DropCurrentTableAsync">删除当前表</Button>
+                </SpaceItem>
+            }
+        </Space>
+    </PageHeaderExtra>
+</PageHeader>
+
+<Row Gutter="16">
+    <Col Span="6">
+        <Card Title="数据库表">
+            <div class="bs-dbadmin-side-form">
+                <div class="bs-dbadmin-form-label">新建表名</div>
+                <input class="bs-dbadmin-input" @bind="createTableName" />
+                <div class="bs-dbadmin-form-label">字段定义</div>
+                <textarea class="bs-dbadmin-textarea bs-dbadmin-textarea-sm" @bind="createTableDefinition"></textarea>
+                <div class="bs-dbadmin-side-actions">
+                    <Button OnClick="CreateTableAsync">直接创建</Button>
+                    <Button OnClick="GenerateCreateTableSql">填入 SQL</Button>
+                </div>
+            </div>
+
+            @if (tables.Count == 0)
+            {
+                <Empty Description="@("当前数据库没有表")" />
+            }
+            else
+            {
+                <div class="bs-dbadmin-entity-list">
+                    @foreach (var table in tables)
+                    {
+                        <button type="button"
+                                class="bs-dbadmin-entity-item @(currentTable?.Key == table.Key ? "active" : string.Empty)"
+                                @onclick="() => SelectTableAsync(table.Key)">
+                            <div class="bs-dbadmin-entity-name">@table.Name</div>
+                            <div class="bs-dbadmin-entity-table">@table.FullName</div>
+                            <div class="bs-dbadmin-entity-table">@table.Type / @table.Columns.Count 列</div>
+                        </button>
+                    }
+                </div>
+            }
+        </Card>
+    </Col>
+
+    <Col Span="18">
+        @if (currentTable == null)
+        {
+            <Card>
+                <Empty Description="@("请选择左侧表")" />
+            </Card>
+        }
+        else
+        {
+            <Card Title="@($"{currentTable.FullName}")">
+                <div class="bs-dbadmin-meta">
+                    <span>类型：@currentTable.Type</span>
+                    <span>字段数：@currentTable.Columns.Count</span>
+                    <span>实体映射：@(currentTable.Entities.Count == 0 ? "无" : currentTable.Entities.Count)</span>
+                    @if (!string.IsNullOrWhiteSpace(currentTable.Comment))
+                    {
+                        <span>备注：@currentTable.Comment</span>
+                    }
+                </div>
+
+                <div class="bs-dbadmin-actions-grid">
+                    <div class="bs-dbadmin-side-form">
+                        <div class="bs-dbadmin-form-title">新增字段</div>
+                        <textarea class="bs-dbadmin-textarea bs-dbadmin-textarea-sm" @bind="addColumnDefinition"></textarea>
+                        <div class="bs-dbadmin-side-actions">
+                            <Button OnClick="AddColumnAsync">直接执行</Button>
+                            <Button OnClick="GenerateAddColumnSql">填入 SQL</Button>
+                        </div>
+                    </div>
+                    <div class="bs-dbadmin-side-form">
+                        <div class="bs-dbadmin-form-title">重命名字段</div>
+                        <input class="bs-dbadmin-input" placeholder="原字段名" @bind="renameOldColumnName" />
+                        <input class="bs-dbadmin-input" placeholder="新字段名" @bind="renameNewColumnName" />
+                        <div class="bs-dbadmin-side-actions">
+                            <Button OnClick="RenameColumnAsync">直接执行</Button>
+                            <Button OnClick="GenerateRenameColumnSql">填入 SQL</Button>
+                        </div>
+                    </div>
+                    <div class="bs-dbadmin-side-form">
+                        <div class="bs-dbadmin-form-title">删除字段</div>
+                        <input class="bs-dbadmin-input" placeholder="字段名" @bind="dropColumnName" />
+                        <div class="bs-dbadmin-side-actions">
+                            <Button Danger="true" OnClick="DropColumnAsync">直接执行</Button>
+                            <Button OnClick="GenerateDropColumnSql">填入 SQL</Button>
+                        </div>
+                    </div>
+                    <div class="bs-dbadmin-side-form">
+                        <div class="bs-dbadmin-form-title">修改字段 SQL 模板</div>
+                        <input class="bs-dbadmin-input" placeholder="字段名" @bind="alterColumnName" />
+                        <input class="bs-dbadmin-input" placeholder="新定义，例如 Name TEXT NOT NULL" @bind="alterColumnDefinition" />
+                        <div class="bs-dbadmin-side-actions">
+                            <Button OnClick="GenerateAlterColumnSql">生成 SQL</Button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bs-dbadmin-section">
+                    <div class="bs-dbadmin-section-title">
+                        <span>表数据</span>
+                        <Space>
+                            <SpaceItem>
+                                <Button OnClick="ReloadCurrentTable">刷新数据</Button>
+                            </SpaceItem>
+                            <SpaceItem>
+                                <Button Type="ButtonType.Primary" OnClick="OpenCreateDrawer">新增记录</Button>
+                            </SpaceItem>
+                        </Space>
+                    </div>
+
+                    <div class="bs-dbadmin-table-scroll">
+                        <table class="bs-dbadmin-table">
+                            <thead>
+                                <tr>
+                                    @foreach (var column in currentTable.Columns)
+                                    {
+                                        <th>@column.Name</th>
+                                    }
+                                    <th class="action-column">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (isLoading)
+                                {
+                                    <tr>
+                                        <td colspan="@(currentTable.Columns.Count + 1)" class="empty-cell">正在加载...</td>
+                                    </tr>
+                                }
+                                else if (rowsRsp.Value == null || rowsRsp.Value.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="@(currentTable.Columns.Count + 1)" class="empty-cell">暂无数据</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in rowsRsp.Value)
+                                    {
+                                        <tr>
+                                            @foreach (var column in currentTable.Columns)
+                                            {
+                                                <td title="@GetCellValue(row, column)">@GetCellValue(row, column)</td>
+                                            }
+                                            <td class="action-column">
+                                                <a href="javascript:void(0)" @onclick="() => OpenEditDrawer(row)">编辑</a>
+                                                <span class="splitter">|</span>
+                                                <a href="javascript:void(0)" class="danger-link" @onclick="() => DeleteRowAsync(row)">删除</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bs-dbadmin-pagination">
+                        <Button Disabled="@(pageIndex <= 1 || isLoading)" OnClick="PreviousPage">上一页</Button>
+                        <span>第 @pageIndex 页 / 共 @GetTotalPages() 页 / 共 @rowsRsp.Total 行</span>
+                        <Button Disabled="@(pageIndex >= GetTotalPages() || isLoading)" OnClick="NextPage">下一页</Button>
+                    </div>
+                </div>
+
+                <div class="bs-dbadmin-section">
+                    <div class="bs-dbadmin-section-title">字段结构与实体说明</div>
+                    <div class="bs-dbadmin-table-scroll">
+                        <table class="bs-dbadmin-table">
+                            <thead>
+                                <tr>
+                                    <th>字段</th>
+                                    <th>数据库类型</th>
+                                    <th>CLR 类型</th>
+                                    <th>约束</th>
+                                    <th>默认值</th>
+                                    <th>实体说明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var column in currentTable.Columns)
+                                {
+                                    <tr>
+                                        <td>@column.Name</td>
+                                        <td>@column.DbTypeFull</td>
+                                        <td>@column.ClrType</td>
+                                        <td>@GetColumnFlags(column)</td>
+                                        <td>@column.DefaultValue</td>
+                                        <td>
+                                            @if (column.EntityBindings.Count == 0)
+                                            {
+                                                <Tag Color="@("default")">无实体映射</Tag>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var binding in column.EntityBindings)
+                                                {
+                                                    <Tag Color="@("blue")">@($"{binding.EntityName}.{binding.PropertyName}")</Tag>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (currentTable.Entities.Count > 0)
+                    {
+                        <div class="bs-dbadmin-entity-summary">
+                            @foreach (var entity in currentTable.Entities)
+                            {
+                                <Card Title="@entity.EntityName">
+                                    <div class="bs-dbadmin-summary-row">映射到：@entity.FullTableName</div>
+                                    <div class="bs-dbadmin-summary-row">
+                                        实体字段数：@entity.Columns.Count
+                                    </div>
+                                    <div class="bs-dbadmin-schema-list">
+                                        @foreach (var missing in GetEntityOnlyColumns(entity))
+                                        {
+                                            <Tag Color="@("orange")">@($"{missing}（实体有，表里无）")</Tag>
+                                        }
+                                    </div>
+                                </Card>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="bs-dbadmin-section">
+                    <div class="bs-dbadmin-section-title">SQL 控制台</div>
+                    <textarea class="bs-dbadmin-textarea" @bind="sqlText"></textarea>
+                    <div class="bs-dbadmin-side-actions">
+                        <Button Type="ButtonType.Primary" Loading="@isExecutingSql" OnClick="ExecuteSqlAsync">执行 SQL</Button>
+                        <Button OnClick="ClearSqlResult">清空结果</Button>
+                    </div>
+
+                    @if (sqlResult != null)
+                    {
+                        <div class="bs-dbadmin-sql-result">@sqlResult.Message</div>
+
+                        @if (sqlResult.IsQuery)
+                        {
+                            <div class="bs-dbadmin-table-scroll">
+                                <table class="bs-dbadmin-table">
+                                    <thead>
+                                        <tr>
+                                            @foreach (var column in sqlResult.Columns)
+                                            {
+                                                <th>@column</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (sqlResult.Rows.Count == 0)
+                                        {
+                                            <tr>
+                                                <td colspan="@Math.Max(1, sqlResult.Columns.Count)" class="empty-cell">查询无结果</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var row in sqlResult.Rows)
+                                            {
+                                                <tr>
+                                                    @foreach (var column in sqlResult.Columns)
+                                                    {
+                                                        <td title="@GetSqlCellValue(row, column)">@GetSqlCellValue(row, column)</td>
+                                                    }
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+                </div>
+            </Card>
+        }
+    </Col>
+</Row>
+
+<Drawer Closable="true"
+        Width="720"
+        Visible="@drawerVisible"
+        Title="@drawerTitle"
+        OnClose="CloseDrawer">
+    <AntDesign.Template>
+        @if (editingTable != null)
+        {
+            @foreach (var field in editFields)
+            {
+                <div class="bs-dbadmin-form-item">
+                    <div class="bs-dbadmin-form-label">@field.Column.Name</div>
+                    <div class="bs-dbadmin-form-meta">
+                        @field.Column.DbTypeFull / @field.Column.ClrType
+                        @if (field.Column.IsPrimary)
+                        {
+                            <Tag Color="@("gold")">主键</Tag>
+                        }
+                        @if (field.Column.IsIdentity)
+                        {
+                            <Tag Color="@("purple")">自增</Tag>
+                        }
+                        @if (field.Column.EntityBindings.Count > 0)
+                        {
+                            @foreach (var binding in field.Column.EntityBindings)
+                            {
+                                <Tag Color="@("blue")">@($"{binding.EntityName}.{binding.PropertyName}")</Tag>
+                            }
+                        }
+                    </div>
+
+                    @if (field.Column.IsBoolean)
+                    {
+                        <input type="checkbox" disabled="@field.ReadOnly" @bind="field.BoolValue" />
+                    }
+                    else
+                    {
+                        <input class="bs-dbadmin-input" disabled="@field.ReadOnly" @bind="field.Value" />
+                    }
+                </div>
+            }
+
+            <div class="bs-dbadmin-form-actions">
+                <Button OnClick="CloseDrawer">取消</Button>
+                <Button Type="ButtonType.Primary" Loading="@isSaving" OnClick="SaveAsync">保存</Button>
+            </div>
+        }
+    </AntDesign.Template>
+</Drawer>
