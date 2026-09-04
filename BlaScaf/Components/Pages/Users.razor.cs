@@ -1,4 +1,4 @@
-﻿using AntDesign;
+using AntDesign;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Components;
 using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text.Json;
+using System.Reflection;
 
 namespace BlaScaf.Components.Pages
 {
@@ -42,6 +43,108 @@ namespace BlaScaf.Components.Pages
         private bool drawerVisible = false;
 
         private BsUser editUser = new BsUser();
+        private string originalPassword = string.Empty;
+
+        private static readonly char[] listValueSeparators = new[] { ',', '，', ';', '；' };
+
+        private static PropertyInfo GetUserFieldProperty(string fieldName)
+        {
+            var property = typeof(BsUser).GetProperty(fieldName, BindingFlags.Public | BindingFlags.Instance);
+            if (property == null)
+            {
+                throw new InvalidOperationException($"BsUser 中不存在字段 {fieldName}");
+            }
+
+            return property;
+        }
+
+        private string GetStringFieldValue(BsUserEditorField field)
+        {
+            return GetUserFieldProperty(field.FieldName).GetValue(this.editUser)?.ToString() ?? string.Empty;
+        }
+
+        private void SetStringFieldValue(BsUserEditorField field, string value)
+        {
+            GetUserFieldProperty(field.FieldName).SetValue(this.editUser, value ?? string.Empty);
+        }
+
+        private int GetIntFieldValue(BsUserEditorField field)
+        {
+            var value = GetUserFieldProperty(field.FieldName).GetValue(this.editUser);
+            return value is int number ? number : 0;
+        }
+
+        private void SetIntFieldValue(BsUserEditorField field, int value)
+        {
+            GetUserFieldProperty(field.FieldName).SetValue(this.editUser, value);
+        }
+
+        private bool GetBoolFieldValue(BsUserEditorField field)
+        {
+            var value = GetUserFieldProperty(field.FieldName).GetValue(this.editUser);
+            return value is bool flag && flag;
+        }
+
+        private void SetBoolFieldValue(BsUserEditorField field, bool value)
+        {
+            GetUserFieldProperty(field.FieldName).SetValue(this.editUser, value);
+        }
+
+        private string GetUserFieldDisplayValue(BsUser user, BsUserEditorField field)
+        {
+            var value = GetUserFieldProperty(field.FieldName).GetValue(user);
+            return value?.ToString() ?? string.Empty;
+        }
+
+        private IEnumerable<string> GetListFieldValues(BsUserEditorField field)
+        {
+            var rawValue = GetStringFieldValue(field);
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return Array.Empty<string>();
+            }
+
+            return rawValue
+                .Split(listValueSeparators, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToArray();
+        }
+
+        private void SetListFieldValues(BsUserEditorField field, IEnumerable<string> values)
+        {
+            var normalizedValues = values?
+                .Select(x => x?.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToArray() ?? Array.Empty<string>();
+
+            SetStringFieldValue(field, string.Join(",", normalizedValues));
+        }
+
+        private IEnumerable<string> GetListOptions(BsUserEditorField field)
+        {
+            return field.GetListValues?.Invoke() ?? new List<string>();
+        }
+
+        private bool IsListOptionSelected(BsUserEditorField field, string option)
+        {
+            return GetListFieldValues(field).Contains(option);
+        }
+
+        private void SetListOptionSelected(BsUserEditorField field, string option, bool isSelected)
+        {
+            var values = GetListFieldValues(field).ToList();
+            values.RemoveAll(x => string.Equals(x, option, StringComparison.Ordinal));
+
+            if (isSelected)
+            {
+                values.Add(option);
+            }
+
+            SetListFieldValues(field, values);
+        }
 
         async void SaveUser(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
         {
@@ -74,17 +177,26 @@ namespace BlaScaf.Components.Pages
                         if (find != null) throw new Exception("已经存在同名用户名或姓名");
                     }
 
-                    if (!string.IsNullOrEmpty(editUser.Password) && (editUser.Password.Length < 8 || !Utility.IsValidPassword(editUser.Password))) throw new Exception("密码至少要为8位且包含大小写和数字");
-                    if (!string.IsNullOrEmpty(editUser.Password) && editUser.Password.Length >= 32) throw new Exception("密码长度不能大于32位");
-                    this.editUser.LastEdit = DateTime.Now;
-                    if (!string.IsNullOrEmpty(this.editUser.Password)) this.editUser.LastChangePwd = DateTime.Now;
+                    if (!string.IsNullOrEmpty(this.editUser.Password))
+                    {
+                        if (this.editUser.Password.Length >= 32) throw new Exception("密码长度不能大于32位");
+                        editUser.Password = Utility.MD5(this.editUser.Password);
+                        editUser.LastChangePwd = DateTime.Now;
+                    }
+                    else
+                    {
+                        editUser.Password = this.originalPassword;
+                    }
+
+                    editUser.LastEdit = DateTime.Now;
                     if (editUser.UserId == 0) this.pageIndex = 0;
-                    BsConfig.AddOrUpdateUser(this.editUser);
+                    BsConfig.AddOrUpdateUser(editUser);
 
                     optLog.OptObjId = editUser.UserId;
                     BsConfig.AddOptLog(optLog);
 
                     drawerVisible = false;
+                    this.originalPassword = string.Empty;
                     await this.PageIndexSizeChange();
                 }
                 catch (Exception ex)
@@ -122,6 +234,7 @@ namespace BlaScaf.Components.Pages
         void NewDrawer()
         {
             editUser = new BsUser();
+            this.originalPassword = string.Empty;
             this.drawerVisible = true;
             this.editTitle = "添加用户";
         }
@@ -131,6 +244,7 @@ namespace BlaScaf.Components.Pages
             _userFragment = null;
             var json = JsonSerializer.Serialize(user);
             this.editUser = JsonSerializer.Deserialize<BsUser>(json);
+            this.originalPassword = this.editUser.Password;
             this.editUser.Password = "";
             this.drawerVisible = true;
             this.editTitle = "编辑用户";

@@ -174,22 +174,11 @@ namespace BlaScaf
             {
                 if (u.UserId == 0)
                 {
-                    u.Password = BlaScaf.Utility.MD5(u.Password);
                     u.UserId = (int)fsql.Insert(u).ExecuteIdentity();
                     BsConfig.Users.Insert(0, u);
                 }
                 else
                 {
-                    BsUser old = BsConfig.Users.Find(f => f.UserId == u.UserId);
-                    if (!string.IsNullOrEmpty(u.Password) && u.Password.Length != 32)
-                    {
-                        u.Password = BlaScaf.Utility.MD5(u.Password);
-                    }
-                    else
-                    {
-                        u.Password = old.Password;
-                    }
-
                     var repo = fsql.GetRepository<BsUser>(); //可以从 IOC 容器中获取
                     var item = repo.Where(a => a.UserId == u.UserId).First();  //此时快照 item
                     BlaScaf.Utility.UpdateDifferentProperties<BsUser>(u, item);
@@ -229,6 +218,33 @@ namespace BlaScaf
             if (BsConfig.AddOrUpdateUser == null) throw new Exception("AddOrUpdateUser不能为空");
             if (BsConfig.GetOptLogs == null) throw new Exception("GetOptLogs不能为空");
             if (BsConfig.GetSysLogs == null) throw new Exception("GetSysLogs不能为空");
+
+            foreach (var field in BsConfig.UserEditorFields)
+            {
+                if (string.IsNullOrWhiteSpace(field.DisplayName)) throw new Exception("BsConfig.UserEditorFields.DisplayName不能为空");
+                if (string.IsNullOrWhiteSpace(field.FieldName)) throw new Exception("BsConfig.UserEditorFields.FieldName不能为空");
+
+                var property = typeof(BsUser).GetProperty(field.FieldName);
+                if (property == null) throw new Exception($"BsConfig.UserEditorFields 中字段 {field.FieldName} 在 BsUser 中不存在");
+
+                if (field.ControlType == BsUserEditorFieldControlType.String && property.PropertyType != typeof(string))
+                    throw new Exception($"字段 {field.FieldName} 不是 string，不能使用 String 控件");
+
+                if (field.ControlType == BsUserEditorFieldControlType.Int && property.PropertyType != typeof(int))
+                    throw new Exception($"字段 {field.FieldName} 不是 int，不能使用 Int 控件");
+
+                if (field.ControlType == BsUserEditorFieldControlType.Bool && property.PropertyType != typeof(bool))
+                    throw new Exception($"字段 {field.FieldName} 不是 bool，不能使用 Bool 控件");
+
+                if (field.ControlType == BsUserEditorFieldControlType.ListString)
+                {
+                    if (property.PropertyType != typeof(string))
+                        throw new Exception($"字段 {field.FieldName} 不是 string，不能使用 ListString 控件");
+
+                    if (field.GetListValues == null)
+                        throw new Exception($"字段 {field.FieldName} 使用 ListString 控件时必须提供 GetListValues");
+                }
+            }
         }
 
         /// <summary>

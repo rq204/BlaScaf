@@ -1,11 +1,15 @@
 #nullable enable
 using AntDesign;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace BlaScaf.Components.Pages
 {
     public partial class DbAdmin
     {
+        private const string DefaultCreateTableDefinition = "Id INTEGER PRIMARY KEY AUTOINCREMENT,\nName TEXT";
+        private const string DefaultAddColumnDefinition = "NewColumn TEXT";
+
         [Inject] public BsDbAdminService DbAdminService { get; set; } = default!;
         [Inject] public MessageService MessageService { get; set; } = default!;
         [Inject] public UserService UserService { get; set; } = default!;
@@ -22,6 +26,9 @@ namespace BlaScaf.Components.Pages
         private readonly int pageSize = 15;
 
         private bool drawerVisible;
+        private bool createTableDrawerVisible;
+        private bool structureDrawerVisible;
+        private bool sqlDrawerVisible;
         private bool isEditMode;
         private string drawerTitle = string.Empty;
         private BsDbAdminTableSchema? editingTable;
@@ -29,8 +36,8 @@ namespace BlaScaf.Components.Pages
         private List<DbAdminFieldModel> editFields = new();
 
         private string createTableName = string.Empty;
-        private string createTableDefinition = "Id INTEGER PRIMARY KEY AUTOINCREMENT,\nName TEXT";
-        private string addColumnDefinition = "NewColumn TEXT";
+        private string createTableDefinition = DefaultCreateTableDefinition;
+        private string addColumnDefinition = DefaultAddColumnDefinition;
         private string renameOldColumnName = string.Empty;
         private string renameNewColumnName = string.Empty;
         private string dropColumnName = string.Empty;
@@ -62,6 +69,17 @@ namespace BlaScaf.Components.Pages
             currentTable = tables.FirstOrDefault(x => string.Equals(x.Key, tableKey, StringComparison.OrdinalIgnoreCase));
             pageIndex = 1;
             await LoadRowsAsync();
+        }
+
+        private async Task HandleTableChanged(ChangeEventArgs args)
+        {
+            var tableKey = args.Value?.ToString();
+            if (string.IsNullOrWhiteSpace(tableKey))
+            {
+                return;
+            }
+
+            await SelectTableAsync(tableKey);
         }
 
         private async Task ReloadCurrentTable()
@@ -106,6 +124,46 @@ namespace BlaScaf.Components.Pages
             drawerTitle = $"新增 {currentTable.Name} 记录";
             editFields = BuildFields(currentTable, null, false);
             drawerVisible = true;
+        }
+
+        private void OpenCreateTableDrawer()
+        {
+            createTableName = string.Empty;
+            createTableDefinition = DefaultCreateTableDefinition;
+            createTableDrawerVisible = true;
+        }
+
+        private void CloseCreateTableDrawer()
+        {
+            createTableDrawerVisible = false;
+        }
+
+        private void OpenStructureDrawer()
+        {
+            if (currentTable == null) return;
+
+            addColumnDefinition = DefaultAddColumnDefinition;
+            renameOldColumnName = string.Empty;
+            renameNewColumnName = string.Empty;
+            dropColumnName = string.Empty;
+            alterColumnName = string.Empty;
+            alterColumnDefinition = string.Empty;
+            structureDrawerVisible = true;
+        }
+
+        private void CloseStructureDrawer()
+        {
+            structureDrawerVisible = false;
+        }
+
+        private void OpenSqlDrawer()
+        {
+            sqlDrawerVisible = true;
+        }
+
+        private void CloseSqlDrawer()
+        {
+            sqlDrawerVisible = false;
         }
 
         private void OpenEditDrawer(BsDbAdminRowDto row)
@@ -207,6 +265,7 @@ namespace BlaScaf.Components.Pages
                 await RefreshTablesAsync();
                 currentTable = tables.FirstOrDefault(x => string.Equals(x.Name, createTableName, StringComparison.OrdinalIgnoreCase) || string.Equals(x.FullName, createTableName, StringComparison.OrdinalIgnoreCase));
                 await LoadRowsAsync();
+                createTableDrawerVisible = false;
             }
             catch (Exception ex)
             {
@@ -285,31 +344,31 @@ namespace BlaScaf.Components.Pages
 
         private void GenerateCreateTableSql()
         {
-            sqlText = DbAdminService.BuildCreateTableSql(createTableName, createTableDefinition);
+            WriteSqlToConsole(DbAdminService.BuildCreateTableSql(createTableName, createTableDefinition));
         }
 
         private void GenerateAddColumnSql()
         {
             if (currentTable == null) return;
-            sqlText = DbAdminService.BuildAddColumnSql(currentTable.Key, addColumnDefinition);
+            WriteSqlToConsole(DbAdminService.BuildAddColumnSql(currentTable.Key, addColumnDefinition));
         }
 
         private void GenerateRenameColumnSql()
         {
             if (currentTable == null) return;
-            sqlText = DbAdminService.BuildRenameColumnSql(currentTable.Key, renameOldColumnName, renameNewColumnName);
+            WriteSqlToConsole(DbAdminService.BuildRenameColumnSql(currentTable.Key, renameOldColumnName, renameNewColumnName));
         }
 
         private void GenerateDropColumnSql()
         {
             if (currentTable == null) return;
-            sqlText = DbAdminService.BuildDropColumnSql(currentTable.Key, dropColumnName);
+            WriteSqlToConsole(DbAdminService.BuildDropColumnSql(currentTable.Key, dropColumnName));
         }
 
         private void GenerateAlterColumnSql()
         {
             if (currentTable == null) return;
-            sqlText = DbAdminService.BuildAlterColumnTemplate(currentTable.Key, alterColumnName, alterColumnDefinition);
+            WriteSqlToConsole(DbAdminService.BuildAlterColumnTemplate(currentTable.Key, alterColumnName, alterColumnDefinition));
         }
 
         private async Task ExecuteSqlAsync()
@@ -339,6 +398,13 @@ namespace BlaScaf.Components.Pages
         private void ClearSqlResult()
         {
             sqlResult = null;
+        }
+
+        private void WriteSqlToConsole(string sql)
+        {
+            sqlText = sql;
+            sqlResult = null;
+            sqlDrawerVisible = true;
         }
 
         private async Task RefreshCurrentTableStructureAsync()

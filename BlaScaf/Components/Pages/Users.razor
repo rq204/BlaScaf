@@ -1,4 +1,4 @@
-﻿@page "/users"
+@page "/users"
 @attribute [Authorize]
 
 <PageHeader Title="@("用户管理")" Subtitle="@($"数量：{this.userrsp.Total}")">
@@ -19,6 +19,10 @@
     <PropertyColumn Title="最后登录" Property="c=>c.LastLogin" Format="yyyy-MM-dd HH:mm:ss" />
     <PropertyColumn Title="过期时间" Property="c=>c.EndTime" Format="yyyy-MM-dd HH:mm:ss" />
     <PropertyColumn Title="状态" Property="c=>c.Enable" />
+    @foreach (var field in BsConfig.UserEditorFields)
+    {
+        <PropertyColumn Title="@field.DisplayName" Property="c => GetUserFieldDisplayValue(c, field)" />
+    }
     <ActionColumn Title="操作">
         <Space Size="SpaceSize.Middle">
             @if (BsConfig.UserAuthFragment != null)
@@ -53,22 +57,64 @@
         <Row>
             <AntDesign.Col Span="24">
                 <Text>密  码</Text>
-                <InputPassword Placeholder="请输入密码" @bind-Value="@editUser.Password" />
+                <InputPassword Placeholder="新增用户请输入密码，编辑用户留空则保持原密码" @bind-Value="@editUser.Password" />
             </AntDesign.Col>
         </Row>
         <br />
         <Row>
             <AntDesign.Col Span="24">
                 <Text>角  色</Text><br />
-                <RadioGroup @bind-Value="@editUser.Role" TValue="string">
+                <Select TItemValue="string" TItem="string" Style="width:100%" @bind-Value="editUser.Role">
                     @foreach (var role in BsConfig.Roles)
                     {
-                        <Radio Value="@role">@role</Radio>
+                        <SelectOption Value="@role" Label="@role">@role</SelectOption>
                     }
-                </RadioGroup>
+                </Select>
             </AntDesign.Col>
         </Row>
         <br />
+        @if (BsConfig.UserEditorFields.Count > 0)
+        {
+            @foreach (var field in BsConfig.UserEditorFields)
+            {
+                <Row>
+                    <AntDesign.Col Span="24">
+                        <Text>@field.DisplayName</Text><br />
+                        @switch (field.ControlType)
+                        {
+                            case BsUserEditorFieldControlType.String:
+                                <Input Placeholder="@($"请输入{field.DisplayName}")"
+                                       @bind-Value:get="GetStringFieldValue(field)"
+                                       @bind-Value:set="value => SetStringFieldValue(field, value)" />
+                                break;
+                            case BsUserEditorFieldControlType.Int:
+                                <AntDesign.InputNumber TValue="int"
+                                                       Style="width:100%"
+                                                       @bind-Value:get="GetIntFieldValue(field)"
+                                                       @bind-Value:set="value => SetIntFieldValue(field, value)" />
+                                break;
+                            case BsUserEditorFieldControlType.Bool:
+                                <Switch @bind-Checked:get="GetBoolFieldValue(field)"
+                                        @bind-Checked:set="value => SetBoolFieldValue(field, value)" />
+                                break;
+                            case BsUserEditorFieldControlType.ListString:
+                                <Select TItemValue="string"
+                                        TItem="string"
+                                        Style="width:100%"
+                                        @bind-Value:get="GetStringFieldValue(field)"
+                                        @bind-Value:set="value => SetStringFieldValue(field, value)">
+                                    @foreach (var option in GetListOptions(field))
+                                    {
+                                        <SelectOption Value="@option" Label="@option">@option</SelectOption>
+                                    }
+                                </Select>
+                                break;
+                        }
+                    </AntDesign.Col>
+                </Row>
+                <br />
+            }
+        }
         <Row>
             <AntDesign.Col Span="24">
                 <Text>过期时间</Text><br />

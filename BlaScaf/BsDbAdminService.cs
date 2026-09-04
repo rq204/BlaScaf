@@ -38,6 +38,7 @@ namespace BlaScaf
             var dbTables = _fsql.DbFirst.GetTablesByDatabase(databases?.ToArray() ?? Array.Empty<string>());
 
             _tables = dbTables
+                .Where(IsVisibleTable)
                 .Select(x => CreateTableSchema(x, entities))
                 .OrderBy(x => x.FullName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
@@ -681,6 +682,16 @@ namespace BlaScaf
         private static bool IsSchemaSql(string sql)
         {
             return Regex.IsMatch(sql, @"^\s*(create|alter|drop|rename|truncate)\b", RegexOptions.IgnoreCase);
+        }
+
+        private bool IsVisibleTable(DbTableInfo table)
+        {
+            if (_fsql.Ado.DataType == DataType.Sqlite && table.Name.StartsWith("sqlite_", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static string CombineSchemaAndName(string? schema, string name)

@@ -99,6 +99,11 @@ namespace BlaScaf
         public static Func<BsUser, Func<Task>, RenderFragment> UserAuthFragment = null;
 
         /// <summary>
+        /// 用户编辑页的扩展字段配置，字段值直接绑定到 BsUser 对应属性
+        /// </summary>
+        public static List<BsUserEditorField> UserEditorFields = new List<BsUserEditorField>();
+
+        /// <summary>
         /// 不需要登录的页面
         /// </summary>
         public static HashSet<Type> AnonymousPages = new HashSet<Type>()
@@ -120,5 +125,42 @@ namespace BlaScaf
         /// 设置浏览器标题，传入的是导航标题
         /// </summary>
         public static Func<string,string> SetBrowserTitle;
+    }
+
+    /// <summary>
+    /// 用户编辑页扩展字段的控件类型
+    /// </summary>
+    public enum BsUserEditorFieldControlType
+    {
+        String,
+        Int,
+        Bool,
+        ListString
+    }
+
+    /// <summary>
+    /// 用户编辑页扩展字段定义
+    /// </summary>
+    public class BsUserEditorField
+    {
+        /// <summary>
+        /// 显示名称
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
+        /// 绑定到 BsUser 的字段名，例如 ExtField1
+        /// </summary>
+        public string FieldName { get; set; }
+
+        /// <summary>
+        /// 控件类型
+        /// </summary>
+        public BsUserEditorFieldControlType ControlType { get; set; }
+
+        /// <summary>
+        /// 列表类控件的可选值提供器，仅在 ListString 时使用
+        /// </summary>
+        public Func<List<string>> GetListValues { get; set; }
     }
 }
