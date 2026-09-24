@@ -4,223 +4,16 @@
     gap: 16px;
 }
 
-.bs-dbadmin-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-.bs-dbadmin-toolbar-select {
-    min-width: 260px;
-}
-
-.bs-dbadmin-toolbar-label {
-    margin-bottom: 6px;
-    color: #8c8c8c;
-    font-size: 12px;
-    line-height: 1;
-}
-
-.bs-dbadmin-select {
-    width: 100%;
-    min-height: 32px;
-    border: 1px solid #d9d9d9;
-    border-radius: 8px;
-    padding: 6px 10px;
-    background: #fff;
-    color: #262626;
-    font: inherit;
-    outline: none;
-}
-
-.bs-dbadmin-select:focus {
-    border-color: #1677ff;
-    box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.12);
-}
-
-.bs-dbadmin-overview {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.bs-dbadmin-overview-title {
-    font-size: 22px;
-    font-weight: 600;
-    color: #262626;
-}
-
-.bs-dbadmin-overview-desc {
-    margin-top: 8px;
-    color: #8c8c8c;
-    line-height: 1.7;
-}
-
-.bs-dbadmin-overview-stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(110px, 1fr));
-    gap: 12px;
-    min-width: 520px;
-}
-
-.bs-dbadmin-stat-card {
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-    padding: 14px 16px;
-    background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
-}
-
-.bs-dbadmin-stat-label {
-    color: #8c8c8c;
-    font-size: 12px;
-}
-
-.bs-dbadmin-stat-value {
-    margin-top: 8px;
-    color: #262626;
-    font-size: 22px;
-    font-weight: 600;
-}
-
-.bs-dbadmin-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-}
-
-.bs-dbadmin-side-form {
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-    padding: 16px;
-    background: #fafafa;
-}
-
-.bs-dbadmin-form-title {
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.bs-dbadmin-form-label {
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #262626;
-}
-
-.bs-dbadmin-input,
-.bs-dbadmin-textarea {
-    width: 100%;
-    border: 1px solid #d9d9d9;
-    border-radius: 8px;
-    padding: 10px 12px;
-    box-sizing: border-box;
-    font: inherit;
-    background: #fff;
-    outline: none;
-}
-
-.bs-dbadmin-input {
-    margin-bottom: 8px;
-}
-
-.bs-dbadmin-input:focus,
-.bs-dbadmin-textarea:focus {
-    border-color: #1677ff;
-    box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.12);
-}
-
-.bs-dbadmin-textarea {
-    min-height: 180px;
-    resize: vertical;
-}
-
-.bs-dbadmin-textarea-sm {
-    min-height: 96px;
-}
-
-.bs-dbadmin-side-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.bs-dbadmin-section {
-    margin-top: 20px;
-}
-
 .bs-dbadmin-section-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 14px;
-    font-weight: 600;
 }
 
-.bs-dbadmin-table-scroll {
-    overflow-x: auto;
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-}
-
-.bs-dbadmin-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-}
-
-.bs-dbadmin-table th,
-.bs-dbadmin-table td {
-    border-bottom: 1px solid #f0f0f0;
-    padding: 12px 14px;
-    text-align: left;
-    vertical-align: top;
-    max-width: 260px;
-    word-break: break-all;
-}
-
-.bs-dbadmin-table thead th {
-    background: #fafafa;
-    white-space: nowrap;
-}
-
-.bs-dbadmin-table .action-column {
-    white-space: nowrap;
-    width: 120px;
-}
-
-.bs-dbadmin-table .danger-link {
-    color: #ff4d4f;
-}
-
-.bs-dbadmin-table .splitter {
-    margin: 0 8px;
-    color: #d9d9d9;
-}
-
-.empty-cell {
-    text-align: center;
-    color: #8c8c8c;
-}
-
-.bs-dbadmin-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 16px;
-}
-
-.bs-dbadmin-pagination-text {
-    color: #595959;
-}
-
-.bs-dbadmin-pagination-actions {
-    display: flex;
-    gap: 8px;
+.bs-dbadmin-comment {
+    margin-bottom: 16px;
 }
 
 .bs-dbadmin-detail-grid {
@@ -229,69 +22,26 @@
     gap: 16px;
 }
 
-.bs-dbadmin-entity-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.bs-dbadmin-entity-card {
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-    padding: 16px;
-    background: #fafafa;
-}
-
-.bs-dbadmin-entity-card-title {
-    margin-bottom: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #262626;
-}
-
-.bs-dbadmin-summary-row {
-    margin-bottom: 6px;
-    color: #595959;
-}
-
-.bs-dbadmin-schema-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.bs-dbadmin-sql-result {
-    margin: 12px 0;
-    color: #262626;
-}
-
-.bs-dbadmin-sql-editor {
-    min-height: 240px;
-    font-family: Consolas, "Courier New", monospace;
-}
-
-.bs-dbadmin-form-item {
-    margin-bottom: 16px;
-}
-
-.bs-dbadmin-form-meta {
-    margin: 6px 0 10px;
-    color: #8c8c8c;
-    font-size: 12px;
-}
-
 .bs-dbadmin-form-actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
+    gap: 8px;
+    margin-top: 16px;
 }
 
 .bs-dbadmin-form-tip {
     margin-top: 8px;
-    color: #8c8c8c;
-    font-size: 12px;
     line-height: 1.6;
+}
+
+.bs-dbadmin-field-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+    font-size: 12px;
 }
 
 .bs-dbadmin-current-columns {
@@ -301,10 +51,6 @@
     margin-bottom: 16px;
 }
 
-.bs-dbadmin-empty {
-    padding: 24px 0;
-}
-
 .bs-dbadmin-empty-actions {
     display: flex;
     justify-content: center;
@@ -312,37 +58,22 @@
     margin-top: 16px;
 }
 
+.bs-dbadmin-danger-link {
+    color: #ff4d4f;
+}
+
+.bs-dbadmin-sql-editor {
+    font-family: Consolas, "Courier New", monospace;
+}
+
 @media (max-width: 1200px) {
-    .bs-dbadmin-overview {
-        flex-direction: column;
-    }
-
-    .bs-dbadmin-overview-stats {
-        min-width: 0;
-        width: 100%;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .bs-dbadmin-detail-grid {
         grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 768px) {
-    .bs-dbadmin-toolbar {
-        justify-content: flex-start;
-    }
-
-    .bs-dbadmin-toolbar-select {
-        width: 100%;
-    }
-
-    .bs-dbadmin-actions-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .bs-dbadmin-pagination {
-        flex-direction: column;
-        align-items: flex-start;
+    .bs-dbadmin-section-title {
+        flex-wrap: wrap;
     }
 }

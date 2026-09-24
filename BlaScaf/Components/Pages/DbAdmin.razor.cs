@@ -71,15 +71,25 @@ namespace BlaScaf.Components.Pages
             await LoadRowsAsync();
         }
 
-        private async Task HandleTableChanged(ChangeEventArgs args)
+        private async Task HandleTableSelected(string? tableKey)
         {
-            var tableKey = args.Value?.ToString();
             if (string.IsNullOrWhiteSpace(tableKey))
             {
                 return;
             }
 
             await SelectTableAsync(tableKey);
+        }
+
+        private async Task HandlePageIndexChanged(int index)
+        {
+            if (index == pageIndex)
+            {
+                return;
+            }
+
+            pageIndex = index;
+            await LoadRowsAsync();
         }
 
         private async Task ReloadCurrentTable()

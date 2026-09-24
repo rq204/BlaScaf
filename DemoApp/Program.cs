@@ -9,10 +9,10 @@ namespace DemoApp
     {
         public static void Main(string[] args)
         {
-            var adminRole = "\u7ba1\u7406\u5458";
-            var auditRole = "\u5ba1\u8ba1\u5458";
+            var adminRole = "管理员";
+            var auditRole = "审计员";
 
-            BsConfig.AppName = "BlaScaf\u540e\u53f0\u7cfb\u7edf\u6f14\u793a";
+            BsConfig.AppName = "BlaScaf后台系统演示";
             BsConfig.CookieTimeOutMinutes = 30;
             BsConfig.ChangePwdDays = 90;
 
@@ -36,7 +36,7 @@ namespace DemoApp
                 Icon = "home",
                 Roles = new List<string> { adminRole, auditRole },
                 RouterLink = "/",
-                Title = "\u9996\u9875"
+                Title = "首页"
             });
             BsConfig.MenuItems.Add(new BsMenuItem
             {
@@ -44,7 +44,7 @@ namespace DemoApp
                 Icon = "user",
                 Roles = new List<string> { adminRole },
                 RouterLink = "/users",
-                Title = "\u7528\u6237\u7ba1\u7406"
+                Title = "用户管理"
             });
             BsConfig.MenuItems.Add(new BsMenuItem
             {
@@ -52,7 +52,7 @@ namespace DemoApp
                 Icon = "database",
                 Roles = new List<string> { adminRole },
                 RouterLink = "/dbadmin",
-                Title = "\u6570\u636e\u5e93\u7ba1\u7406"
+                Title = "数据库管理"
             });
             BsConfig.MenuItems.Add(new BsMenuItem
             {
@@ -60,7 +60,7 @@ namespace DemoApp
                 Icon = "edit",
                 Roles = new List<string> { adminRole, auditRole },
                 RouterLink = "/optlogs",
-                Title = "\u64cd\u4f5c\u65e5\u5fd7"
+                Title = "操作日志"
             });
             BsConfig.MenuItems.Add(new BsMenuItem
             {
@@ -68,14 +68,14 @@ namespace DemoApp
                 Icon = "highlight",
                 Roles = new List<string> { adminRole, auditRole },
                 RouterLink = "/syslogs",
-                Title = "\u7cfb\u7edf\u65e5\u5fd7"
+                Title = "系统日志"
             });
 
             RenderFragment fragment = builder =>
             {
                 builder.OpenComponent<DemoFragment>(0);
-                builder.AddAttribute(1, "Title", "\u8fd9\u662f\u52a8\u6001\u5185\u5bb9");
-                builder.AddAttribute(2, "Content", $"\u5f53\u524d\u65f6\u95f4 {DateTime.Now:T}");
+                builder.AddAttribute(1, "Title", "这是动态内容");
+                builder.AddAttribute(2, "Content", $"当前时间 {DateTime.Now:T}");
                 builder.CloseComponent();
             };
             BsConfig.HeaderFragments.Add(fragment);
@@ -143,7 +143,7 @@ namespace DemoApp
                 fsql.Insert(new BsUser
                 {
                     UserName = "admin",
-                    FullName = "\u7cfb\u7edf\u7ba1\u7406\u5458",
+                    FullName = "系统管理员",
                     Password = Utility.MD5("admin"),
                     AddTime = DateTime.Now,
                     Enable = true,
@@ -161,7 +161,7 @@ namespace DemoApp
                 fsql.Insert(new BsUser
                 {
                     UserName = "test",
-                    FullName = "\u5ba1\u8ba1\u793a\u4f8b",
+                    FullName = "审计示例",
                     Password = Utility.MD5("Test1234"),
                     AddTime = DateTime.Now,
                     Enable = true,
