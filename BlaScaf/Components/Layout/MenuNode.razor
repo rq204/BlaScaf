@@ -27,7 +27,7 @@
 else
 {
     <MenuItem Key="@Item.Key"
-              RouterLink="@Item.RouterLink">
+              RouterLink="@BsConfig.GetFullPath(Item.RouterLink)">
 
         @if (!string.IsNullOrEmpty(Item.Icon))
         {

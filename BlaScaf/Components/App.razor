@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="/" />
+    <!-- 子目录访问模式（BsConfig.PathBase）下自动切换为 /root/，保证页面内相对路径都落在子目录内 -->
+    <base href="@BsConfig.GetFullPath("/")" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="stylesheet" href="_content/AntDesign/css/ant-design-blazor.css" />
     <link rel="stylesheet" href="BlaScaf.styles.css" />

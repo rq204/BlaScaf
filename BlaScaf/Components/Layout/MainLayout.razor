@@ -15,11 +15,11 @@
         <div style="height: 54px; display: flex; align-items: center; justify-content: center;">
             @if (collapsed)
             {
-                <img src="/images/logo_fold.png" style="height: 50px; width: 80px; object-fit: contain;" />
+                <img src="@BsConfig.GetFullPath("/images/logo_fold.png")" style="height: 50px; width: 80px; object-fit: contain;" />
             }
             else
             {
-                <img src="/images/logo_unfold.png" style="height: 50px; width: 180px; object-fit: contain;" />
+                <img src="@BsConfig.GetFullPath("/images/logo_unfold.png")" style="height: 50px; width: 180px; object-fit: contain;" />
             }
         </div>
         <NavMenu Collapsed="collapsed" />
@@ -68,13 +68,13 @@
                 return;
             }
 
-            fetch('/api/keepalive', {
+            fetch('@BsConfig.GetFullPath("/api/keepalive")', {
                 method: 'POST',
                 credentials: 'include',
                 cache: 'no-store'
             }).then(res => {
                 if (res.status === 401) {
-                    window.location.href = '/login';
+                    window.location.href = '@BsConfig.GetFullPath("/login")';
                 }
             }).catch(() => {
                 // 网络抖动时交给 Blazor 自身重连机制处理，这里不额外打断页面。

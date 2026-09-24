@@ -26,7 +26,7 @@ namespace BlaScaf.Components.Layout
             await UserService.LoadUserInfoAsync();
             if (UserService.UserId == 0)
             {
-                NavigationManager.NavigateTo("/login", forceLoad: true);
+                NavigationManager.NavigateTo(BsConfig.GetFullPath("/login"), forceLoad: true);
                 return;
             }
 
@@ -56,8 +56,8 @@ namespace BlaScaf.Components.Layout
         private void UpdatePageTitle(string uri)
         {
             var ui = new Uri(uri);
-            //currentPath = uri.AbsolutePath; // 例如 "/users"
-            var relativePath = ui.AbsolutePath;// NavigationManager.ToBaseRelativePath(uri);
+            // 子目录访问模式下，浏览器地址带前缀（如 /root/users），需要还原为 /users 再与菜单匹配
+            var relativePath = BsConfig.ToRootPath(ui.AbsolutePath);
             var bsMenu = FindMenuByRoute(BsConfig.MenuItems, relativePath);
             if (bsMenu == null) bsMenu = FindMenuByRoute(BsConfig.RouterLinkPages, relativePath);
             NavTitle = string.IsNullOrWhiteSpace(bsMenu?.Title) ? "首页" : bsMenu.Title;
@@ -65,7 +65,7 @@ namespace BlaScaf.Components.Layout
             ///权限不足
             if (bsMenu == null || (this.UserService.Role != null && !bsMenu.Roles.Contains(this.UserService.Role)))
             {
-                NavigationManager.NavigateTo("/api/denied", forceLoad: true);
+                NavigationManager.NavigateTo(BsConfig.GetFullPath("/api/denied"), forceLoad: true);
             }
         }
 

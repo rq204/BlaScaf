@@ -25,7 +25,7 @@ namespace BlaScaf.Components.Shared
 
             if (result.Success)
             {
-                NavigationManager.NavigateTo("/", true); // 强制刷新
+                NavigationManager.NavigateTo(BsConfig.GetFullPath("/"), true); // 强制刷新
             }
             else
             {

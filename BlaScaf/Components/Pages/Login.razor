@@ -51,7 +51,7 @@
         };
 
         try {
-            let response = await fetch('/api/login', {
+            let response = await fetch('@BsConfig.GetFullPath("/api/login")', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

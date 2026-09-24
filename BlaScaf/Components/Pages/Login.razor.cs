@@ -68,7 +68,7 @@ namespace BlaScaf.Components.Pages
 
                             if (result.Success)
                             {
-                                NavigationManager.NavigateTo("/", true);
+                                NavigationManager.NavigateTo(BsConfig.GetFullPath("/"), true);
                             }
                             else
                             {

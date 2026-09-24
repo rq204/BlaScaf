@@ -22,7 +22,7 @@
 <script>
     window.bsLogout = async function () {
         try {
-            let response = await fetch('/api/logout', {
+            let response = await fetch('@BsConfig.GetFullPath("/api/logout")', {
                 method: 'POST',                // ✅ 改 POST
                 credentials: 'include',
                 headers: {

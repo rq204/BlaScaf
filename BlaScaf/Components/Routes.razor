@@ -12,7 +12,7 @@
                     <NotAuthorized>
                         @if (!NavigationManager.Uri.Contains("login"))
                         {
-                            NavigationManager.NavigateTo("/login", forceLoad: true);
+                            NavigationManager.NavigateTo(BsConfig.GetFullPath("/login"), forceLoad: true);
                         }
                     </NotAuthorized>
                 </AuthorizeRouteView>

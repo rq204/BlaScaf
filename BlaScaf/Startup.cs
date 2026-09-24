@@ -49,6 +49,9 @@ namespace BlaScaf
             services.AddAuthentication("Cookies")
             .AddCookie("Cookies", options =>
             {
+                // 登录路径保持根相对路径（不带子目录前缀）：
+                // Cookie 认证重定向时会自动拼接 Request.PathBase（即 /root），
+                // 若此处再带前缀会造成 /root/root/login 的双重前缀。
                 options.LoginPath = "/login";
                 // 设置为 HttpOnly，防止客户端 JavaScript 访问 Cookie（提升安全性）
                 options.Cookie.HttpOnly = true;
@@ -115,6 +118,58 @@ namespace BlaScaf
         /// <param name="app">WebApplication 实例。</param>
         public static void UseBsService(this WebApplication app)
         {
+            // 子目录访问模式：配置 PathBase 后，管理端限定在 /root/* 下访问。
+            // 根目录保留给宿主自己的前台（如 Vue3 静态站点部署在 wwwroot）：
+            // - /root/*：管理端 Blazor 页面及其静态资源
+            // - 根目录下 wwwroot 中存在的文件：直接访问，"/" 返回 wwwroot/index.html 作为前台入口
+            // - 根目录下配置在 BsConfig.RootApiPrefixes 中的 API 前缀：放行，供前台前端调用根级 WebAPI
+            // - 其余根目录请求（如管理端页面 /login、不存在的文件）：直接 404，不重定向
+            if (!string.IsNullOrWhiteSpace(BsConfig.PathBase))
+            {
+                var prefix = "/" + BsConfig.PathBase.Trim('/');
+                var rootApiPrefixes = (BsConfig.RootApiPrefixes ?? new List<string>())
+                    .Where(p => !string.IsNullOrWhiteSpace(p))
+                    .Select(p => "/" + p.Trim('/'))
+                    .ToArray();
+
+                app.Use(async (context, next) =>
+                {
+                    var path = context.Request.Path;
+
+                    // 子目录请求：放行，由后续 UsePathBase 剥离前缀后进入管理端管道
+                    if (path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        await next();
+                        return;
+                    }
+
+                    // 根级 WebAPI：仅放行显式配置的前缀
+                    if (rootApiPrefixes.Any(p => path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        await next();
+                        return;
+                    }
+
+                    // 根目录静态文件：仅 wwwroot 中真实存在的文件放行；
+                    // "/"（前台站点入口）重写为 /index.html 后由静态文件中间件返回
+                    var fileProvider = context.RequestServices.GetRequiredService<IWebHostEnvironment>().WebRootFileProvider;
+                    var relative = path.Value?.TrimStart('/');
+                    if (string.IsNullOrEmpty(relative)) relative = "index.html";
+                    if (!fileProvider.GetFileInfo(relative).Exists)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status404NotFound;
+                        return;
+                    }
+                    if (path.Value == "/" || string.IsNullOrEmpty(path.Value))
+                    {
+                        context.Request.Path = "/index.html";
+                    }
+                    await next();
+                });
+
+                app.UsePathBase(prefix);
+            }
+
             // 启用静态文件中间件，用于服务 wwwroot 下的静态资源（如 JS、CSS、图片等）
             app.UseStaticFiles();
 
@@ -137,6 +192,9 @@ namespace BlaScaf
             // 其中 App 是组件的根组件
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode().AddAdditionalAssemblies(GetAdditionalAssemblies()!); // 启用 Blazor Server 模式（非 WebAssembly）
+
+            // 未匹配任何端点的请求（包括子目录下不存在的文件）保持 Blazor 默认的 404 行为，
+            // 不做任何兜底页面。
         }
 
         /// <summary>

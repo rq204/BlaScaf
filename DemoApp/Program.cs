@@ -16,6 +16,17 @@ namespace DemoApp
             BsConfig.CookieTimeOutMinutes = 30;
             BsConfig.ChangePwdDays = 90;
 
+            // 访问模式二选一：
+            // - 根目录访问：留空（默认），通过 /login 访问
+            // - 子目录访问：设置为子目录名（不带斜杠），此时管理端只能通过 /root/login 访问；
+            //   根目录保留给前台静态站点（wwwroot 中的文件可直接访问，/ 返回 index.html），
+            //   根目录下不存在的文件返回 Blazor 默认的 404
+            BsConfig.PathBase = "";
+
+            // 根级 WebAPI 前缀：Vue3 等前台静态前端直接调用 /api/*（不带 /root 前缀），
+            // 管理端页面则只能通过 /root/* 访问
+            BsConfig.RootApiPrefixes = new List<string> { "/api" };
+
             BsConfig.Roles = new List<string> { adminRole, auditRole };
             BsConfig.DbAdminEntityTypes = new List<Type> { typeof(BsUser), typeof(BsOptLog), typeof(BsSysLog) };
 
