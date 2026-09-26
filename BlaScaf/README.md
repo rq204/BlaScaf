@@ -56,6 +56,8 @@
 - 可选验证码扩展
 - 页面标题自动切换
 - KeepAlive 保活与断线重连容忍
+- 子目录访问模式（`BsConfig.PathBase`，管理端与前台静态站点可同站部署）
+- 用户编辑页扩展字段（`BsConfig.UserEditorFields`）
 
 ---
 
@@ -244,6 +246,9 @@ app.Run();
 | `RouterLinkPages` | 不显示在菜单里，但允许访问的路由 |
 | `DbAdminEntityTypes` | 数据库管理页允许映射的实体类型集合 |
 | `SetBrowserTitle` | 自定义浏览器标题生成规则 |
+| `PathBase` | 子目录访问前缀，设置后管理端限定在该子目录下访问，详见第 15 章 |
+| `RootApiPrefixes` | 子目录模式下允许从根目录访问的 WebAPI 路由前缀列表 |
+| `UserEditorFields` | 用户编辑页扩展字段配置，字段值直接绑定 `BsUser` 属性 |
 
 ---
 
@@ -349,6 +354,20 @@ app.Run();
 
 宿主项目必须在这里把这些变更持久化到数据库。  
 否则页面刷新或重新校验时，Token 很可能失效。
+
+### 8.5 `AddOrUpdateUser` 收到的密码已是最终存储值
+
+内置用户管理页在调用 `BsConfig.AddOrUpdateUser` 之前，已经完成了密码的 `MD5` 处理：
+
+- 新增用户、编辑时修改密码：传入委托的用户对象 `Password` 已经是 32 位 MD5 值
+- 编辑时密码留空：页面会自动回填该用户原有的密码哈希，语义为“不修改密码”
+- 修改密码时会同步更新 `LastChangePwd`
+
+因此，宿主自己实现的 `AddOrUpdateUser` 委托：
+
+1. 不要再做任何哈希或加密，把收到的 `Password` 原样持久化即可
+2. 如果在委托里再哈希一次，会导致该用户之后无法登录（旧版本曾因此出现“密码更新错误”问题）
+3. 沿用 `Startup.InitFreeSqlActionFunc(fsql)` 提供的默认实现则无需关心此事，它只做差异更新，不碰密码哈希
 
 ---
 
@@ -534,9 +553,9 @@ BsConfig.RouterLinkPages.Add(new BsMenuItem
 
 ---
 
-## 12. 顶部扩展、验证码、权限弹窗扩展
+## 12. 顶部扩展、验证码、权限弹窗、用户编辑扩展
 
-框架提供三个很实用的宿主扩展点。
+框架提供四个很实用的宿主扩展点。
 
 ### 12.1 头部扩展 `HeaderFragments`
 
@@ -592,6 +611,41 @@ Func<BsUser, Func<Task>, RenderFragment>
 - 第二个参数：关闭弹窗时要调用的回调
 - 返回值：一个可渲染的 Blazor 片段
 
+### 12.4 用户编辑页扩展字段 `UserEditorFields`
+
+如果希望在内置 `/users` 页面的新增/编辑抽屉里追加自己的字段（通常是 `ExtField1 ~ ExtField5`、`ExtJson`），不需要重写页面，直接配置即可，扩展字段会同时出现在用户列表的展示列中：
+
+```csharp
+BsConfig.UserEditorFields = new List<BsUserEditorField>
+{
+    new BsUserEditorField
+    {
+        DisplayName = "部门",
+        FieldName = "ExtField1",
+        ControlType = BsUserEditorFieldControlType.String
+    },
+    new BsUserEditorField
+    {
+        DisplayName = "数据权限",
+        FieldName = "ExtField2",
+        ControlType = BsUserEditorFieldControlType.ListString,
+        GetListValues = () => new List<string> { "本部门", "全公司" }
+    }
+};
+```
+
+`BsUserEditorField` 的字段含义：
+
+- `DisplayName`：界面显示名称
+- `FieldName`：绑定到 `BsUser` 的属性名，例如 `ExtField1`
+- `ControlType`：控件类型，可选 `String` / `Int` / `Bool` / `ListString`
+- `GetListValues`：仅 `ListString` 时使用，提供可选项列表
+
+补充说明：
+
+- `ListString` 控件的多个选中值会以英文逗号拼接后存入绑定的 `string` 字段，读取时按逗号/分号拆分
+- `Startup.CheckBsConfig()` 会校验该配置：字段必须真实存在于 `BsUser` 且类型与控件匹配，`ListString` 必须提供 `GetListValues`，配置有误会直接抛异常
+
 ---
 
 ## 13. 数据库管理页接入规则
@@ -642,6 +696,12 @@ BsConfig.DbAdminEntityTypes = new List<Type>
 
 不建议直接暴露给普通业务角色。
 
+### 13.5 行为细节
+
+- 建表、加字段、改字段名、删字段等结构操作支持先生成对应 DDL 填入 SQL 控制台，确认后再执行
+- SQLite 的系统表（`sqlite_` 开头）不会出现在表列表中
+- 在该页执行 SQL 会写入操作日志（内容超长时截断保存）
+
 ---
 
 ## 14. 静态资源与前端注入规则
@@ -681,11 +741,69 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 
 ---
 
-## 15. AI 基于该框架开发新系统的标准流程
+## 15. 子目录访问模式（前后台同站部署）
+
+默认情况下，管理端部署在站点根目录（`/login`、`/users` 等）。
+
+如果希望把管理端挂到某个子目录下，把根目录留给前台站点（例如部署在 `wwwroot` 下的 Vue3 静态站点），可以配置 `BsConfig.PathBase`。
+
+### 15.1 配置方式
+
+```csharp
+// 访问模式二选一：
+// - 根目录访问（默认）：留空，通过 /login 访问
+// - 子目录访问：设置为子目录名（不带斜杠），例如 "root"
+BsConfig.PathBase = "root";
+
+// 子目录模式下，允许不带子目录前缀访问的根级 WebAPI 前缀，
+// 按路径段匹配、不区分大小写："/api" 匹配 /api 与 /api/xxx，不匹配 /apixxx
+BsConfig.RootApiPrefixes = new List<string> { "/api" };
+```
+
+配置后管理端只能通过 `/root/login`、`/root/users` 等地址访问；菜单里的 `RouterLink` 仍然写 `/login`、`/users` 这类根相对路径，页面代码无需任何改动。
+
+### 15.2 请求路由行为
+
+配置 `PathBase` 后，框架在请求管道中按以下规则分流：
+
+| 请求 | 行为 |
+| --- | --- |
+| `/root/*` 子目录下的请求 | 管理端页面、静态资源、Blazor 资源（`_framework/*`）正常访问 |
+| 根目录下 `wwwroot` 中真实存在的文件 | 直接返回 |
+| `/` | 返回 `wwwroot/index.html`，作为前台站点入口 |
+| 匹配 `RootApiPrefixes` 的根级请求（如 `/api/*`） | 放行。宿主根级 WebAPI 与 BlaScaf 自身的 `/api/*` 接口（如 `/api/login`）都可直接访问，前后台共用 |
+| 其余根目录请求（如 `/login`、不存在的文件） | 直接 404，不做重定向 |
+| 子目录下不存在的路径 | 返回 Blazor 默认的 404 |
+
+一句话理解：管理端在子目录，前台静态站点与根级 API 在根目录，两者共用同一个站点进程。
+
+### 15.3 路径辅助方法
+
+框架提供两个静态方法用于路径转换（未配置 `PathBase` 时原样返回）：
+
+```csharp
+BsConfig.GetFullPath("/login");     // PathBase="root" 时 → "/root/login"
+BsConfig.ToRootPath("/root/login"); // PathBase="root" 时 → "/login"
+```
+
+宿主在业务代码中拼接跳转地址时应使用 `GetFullPath`，不要手动拼子目录前缀。
+
+### 15.4 重要注意事项
+
+1. 登录重定向由框架自动处理，宿主不要给登录路径手动加子目录前缀，否则会出现 `/root/root/login` 这类双重前缀问题。
+2. 同一浏览器在“根目录模式”与“子目录模式”之间切换部署时，建议先清理旧 Cookie，避免新旧同名 Cookie 共存干扰认证。
+3. 框架是单用户单会话设计：每次登录都会刷新用户 `Token`，同一账号已打开的其他窗口会在下次保活/复核（最长约 30 秒）后被踢回登录页，这属于预期行为。
+4. 根目录要作为前台入口时，宿主需要在 `wwwroot` 下提供 `index.html`。
+
+`DemoApp` 中包含该模式的完整演示：`Program.cs` 里的 `PathBase` / `RootApiPrefixes` 配置，以及 `DemoApiController` 演示的根级 `/api/demo/ping` 接口。
+
+---
+
+## 16. AI 基于该框架开发新系统的标准流程
 
 如果 AI 只能拿到本手册，建议严格按下面流程工作。
 
-### 15.1 第一步：收集宿主系统的必要输入
+### 16.1 第一步：收集宿主系统的必要输入
 
 至少确认：
 
@@ -699,8 +817,9 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 8. 是否启用数据库管理页
 9. 是否需要用户权限弹窗
 10. 是否使用 FreeSql，还是自己实现 `BsConfig` 委托
+11. 是否启用子目录访问模式（`PathBase`），根目录是否需要留给前台静态站点
 
-### 15.2 第二步：生成宿主项目骨架
+### 16.2 第二步：生成宿主项目骨架
 
 创建：
 
@@ -710,7 +829,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - `wwwroot/images/`
 - ORM 与实体
 
-### 15.3 第三步：初始化 `BsConfig`
+### 16.3 第三步：初始化 `BsConfig`
 
 至少完成：
 
@@ -726,7 +845,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - `GetOptLogs`
 - `GetSysLogs`
 
-### 15.4 第四步：开发业务页面
+### 16.4 第四步：开发业务页面
 
 每加一个页面，检查以下清单：
 
@@ -736,7 +855,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 是否配置了 `Roles`
 - 是否需要写操作日志
 
-### 15.5 第五步：验证登录链路
+### 16.5 第五步：验证登录链路
 
 至少验证：
 
@@ -746,7 +865,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 越权访问是否跳转到拒绝页
 - 用户禁用/过期后是否能被踢出
 
-### 15.6 第六步：验证配置一致性
+### 16.6 第六步：验证配置一致性
 
 重点检查：
 
@@ -757,9 +876,9 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 
 ---
 
-## 16. 推荐的开发策略
+## 17. 推荐的开发策略
 
-### 16.1 推荐：宿主项目承载业务
+### 17.1 推荐：宿主项目承载业务
 
 最佳实践是：
 
@@ -773,7 +892,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 降低框架升级成本
 - 保持业务代码边界清晰
 
-### 16.2 推荐：统一把权限收敛到角色 + 菜单
+### 17.2 推荐：统一把权限收敛到角色 + 菜单
 
 在框架现有设计下，最稳定的方式是：
 
@@ -781,7 +900,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 菜单级权限与页面权限保持一致
 - 更细粒度的业务授权放到 `UserAuthFragment` 或业务服务内部
 
-### 16.3 推荐：用户信息用缓存 + 数据库双写
+### 17.3 推荐：用户信息用缓存 + 数据库双写
 
 任何会影响登录态或权限的数据修改，都要做到：
 
@@ -790,11 +909,11 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 
 ---
 
-## 17. 生产使用前建议重点复核的事项
+## 18. 生产使用前建议重点复核的事项
 
 虽然框架已经具备完整后台骨架，但在生产系统中，建议宿主团队重点复核以下能力是否满足要求：
 
-### 17.1 密码与安全策略
+### 18.1 密码与安全策略
 
 当前框架采用：
 
@@ -809,23 +928,23 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 更严格的登录风控
 - 更完整的验证码机制
 
-### 17.2 用户缓存同步机制
+### 18.2 用户缓存同步机制
 
 `BsConfig.Users` 是关键运行时缓存。  
 如果系统支持后台改人、批量禁用、组织同步等能力，必须设计可靠的缓存刷新策略。
 
-### 17.3 日志完整性
+### 18.3 日志完整性
 
 框架只提供日志入口，不负责你业务侧所有日志定义。  
 关键业务动作应主动补充 `BsOptLog` 或独立审计日志。
 
-### 17.4 数据库管理页权限
+### 18.4 数据库管理页权限
 
 `/dbadmin` 功能很强，建议只开放给极少数管理员。
 
 ---
 
-## 18. 一个新系统最少需要落地哪些内容
+## 19. 一个新系统最少需要落地哪些内容
 
 如果要基于 `BlaScaf` 快速生成一个新系统，最少需要有：
 
@@ -842,11 +961,11 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 
 ---
 
-## 19. AI 可直接复用的开发模板思路
+## 20. AI 可直接复用的开发模板思路
 
 当 AI 接到“基于 BlaScaf 开发一个 XX 系统”的任务时，可以直接按下面套路输出：
 
-### 19.1 先生成角色
+### 20.1 先生成角色
 
 例如：
 
@@ -854,7 +973,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 审核员
 - 业务员
 
-### 19.2 再生成菜单
+### 20.2 再生成菜单
 
 例如：
 
@@ -865,7 +984,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - 操作日志
 - 系统日志
 
-### 19.3 再生成实体与页面
+### 20.3 再生成实体与页面
 
 例如：
 
@@ -873,7 +992,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 - `/orders` 列表页
 - `/orders/{id}` 详情页
 
-### 19.4 最后接入框架
+### 20.4 最后接入框架
 
 - 配置 `BsConfig`
 - 注入 ORM
@@ -883,7 +1002,7 @@ BsConfig.SetBrowserTitle = navTitle => $"我的系统 | {navTitle}";
 
 ---
 
-## 20. 结论
+## 21. 结论
 
 `BlaScaf` 的开发重点不是“改框架内部”，而是“用宿主项目按它的契约接入”。
 
@@ -896,5 +1015,6 @@ AI 在没有源码的情况下，只要记住下面这几个关键点，就可�
 5. 新页面开发时，路由与菜单配置必须同步。
 6. `AddLogin`、日志委托、用户更新委托都必须真正落地。
 7. 最佳实践是在宿主项目中扩展业务，而不是直接改框架底层。
+8. 需要管理端与前台站点同站部署时，配置 `BsConfig.PathBase` 即可把管理端挂到子目录，页面与菜单代码无需改动。
 
 如果按本手册实施，AI 即使拿不到 `BlaScaf` 源码，也能基于该框架快速搭建新的后台系统。
