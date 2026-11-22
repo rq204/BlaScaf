@@ -55,7 +55,7 @@
 - 顶部扩展插槽
 - 可选验证码扩展
 - 页面标题自动切换
-- KeepAlive 保活与断线重连容忍
+- 基于用户操作的 KeepAlive 保活与断线重连容忍
 - 子目录访问模式（`BsConfig.PathBase`，管理端与前台静态站点可同站部署）
 - 用户编辑页扩展字段（`BsConfig.UserEditorFields`）
 
@@ -220,7 +220,7 @@ app.Run();
 | 配置项 | 作用 | 说明 |
 | --- | --- | --- |
 | `AppName` | 系统名称 | 显示在登录页、浏览器标题等 |
-| `CookieTimeOutMinutes` | 登录超时分钟数 | 决定 Cookie 过期时间和前端保活节奏 |
+| `CookieTimeOutMinutes` | 登录超时分钟数 | 决定 Cookie 过期时间；仅在真实用户操作时才会续期 |
 | `Roles` | 角色列表 | 用户管理页角色选择、菜单权限判断都依赖它 |
 | `MenuItems` | 菜单树 | 页面导航、权限校验、标题显示都依赖它 |
 | `Users` | 用户缓存 | 登录、认证重校验、当前用户解析依赖它 |
@@ -792,7 +792,7 @@ BsConfig.ToRootPath("/root/login"); // PathBase="root" 时 → "/login"
 
 1. 登录重定向由框架自动处理，宿主不要给登录路径手动加子目录前缀，否则会出现 `/root/root/login` 这类双重前缀问题。
 2. 同一浏览器在“根目录模式”与“子目录模式”之间切换部署时，建议先清理旧 Cookie，避免新旧同名 Cookie 共存干扰认证。
-3. 框架是单用户单会话设计：每次登录都会刷新用户 `Token`，同一账号已打开的其他窗口会在下次保活/复核（最长约 30 秒）后被踢回登录页，这属于预期行为。
+3. 框架是单用户单会话设计：每次登录都会刷新用户 `Token`，同一账号已打开的其他窗口会在下次用户操作触发的保活或认证复核（最长约 30 秒）后被踢回登录页，这属于预期行为。
 4. 根目录要作为前台入口时，宿主需要在 `wwwroot` 下提供 `index.html`。
 
 `DemoApp` 中包含该模式的完整演示：`Program.cs` 里的 `PathBase` / `RootApiPrefixes` 配置，以及 `DemoApiController` 演示的根级 `/api/demo/ping` 接口。

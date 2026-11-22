@@ -62,11 +62,20 @@
     window.keepAlive = (timeoutMinutes) => {
         const heartbeatMinutes = Math.max(1, Math.min(4, Math.floor(timeoutMinutes / 3) || 1));
         const intervalMs = heartbeatMinutes * 60 * 1000;
+        let lastKeepAliveAt = 0;
+        let keepAliveInFlight = false;
 
         const sendKeepAlive = () => {
             if (navigator.onLine === false) {
                 return;
             }
+
+            if (keepAliveInFlight) {
+                return;
+            }
+
+            keepAliveInFlight = true;
+            lastKeepAliveAt = Date.now();
 
             fetch('@BsConfig.GetFullPath("/api/keepalive")', {
                 method: 'POST',
@@ -78,28 +87,30 @@
                 }
             }).catch(() => {
                 // 网络抖动时交给 Blazor 自身重连机制处理，这里不额外打断页面。
+            }).finally(() => {
+                keepAliveInFlight = false;
             });
         };
 
-        const onVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
+        const tryKeepAlive = () => {
+            if (Date.now() - lastKeepAliveAt >= intervalMs) {
                 sendKeepAlive();
             }
         };
 
-        const onFocus = () => sendKeepAlive();
+        // 仅在真实用户操作时续期，避免页面静置一整晚仍被自动续命。
+        const activityEvents = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+        const activityHandler = () => tryKeepAlive();
 
-        document.addEventListener('visibilitychange', onVisibilityChange);
-        window.addEventListener('focus', onFocus);
-
-        const intervalId = setInterval(sendKeepAlive, intervalMs);
-        setTimeout(sendKeepAlive, 5000);
+        for (const eventName of activityEvents) {
+            window.addEventListener(eventName, activityHandler, { passive: true });
+        }
 
         return {
             dispose: () => {
-                document.removeEventListener('visibilitychange', onVisibilityChange);
-                window.removeEventListener('focus', onFocus);
-                clearInterval(intervalId);
+                for (const eventName of activityEvents) {
+                    window.removeEventListener(eventName, activityHandler, { passive: true });
+                }
             }
         };
     };
